@@ -11,6 +11,7 @@ import {
   vendorNewOrderText,
 } from "@/lib/conversation/copy";
 import { withOrder, withSearch } from "@/lib/conversation/context";
+import { handleBuyerAddresses, showCustomerAddresses } from "@/lib/conversation/handlers/buyer-addresses";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { parseLocation, parsePositiveNumber } from "@/lib/conversation/input";
 import { orderButtonsReply, skipReply, textReply, yesNoReply } from "@/lib/conversation/replies";
@@ -28,6 +29,10 @@ export const handleBuyer: ConversationHandler = async (turn, deps) => {
 
   if (state === "CUSTOMER_MENU" || state === "NEW") {
     return handleCustomerMenu(turn, deps);
+  }
+
+  if (state.startsWith("CUSTOMER_ADDRESS")) {
+    return handleBuyerAddresses(turn, deps);
   }
 
   if (state === "SEARCH_PRODUCT_QUERY") {
@@ -70,11 +75,11 @@ async function handleCustomerMenu(
     return landingFor("CUSTOMER");
   }
 
-  if (turn.input.help || turn.input.choice === 5) {
+  if (turn.input.help || turn.input.choice === 6) {
     return {
       state: "SUPPORT",
       context: {},
-        replies: helpReplies(),
+      replies: helpReplies(),
     };
   }
 
@@ -126,7 +131,11 @@ async function handleCustomerMenu(
     };
   }
 
-  if (turn.input.greeting || turn.input.menu || turn.input.choice === 6) {
+  if (turn.input.choice === 5) {
+    return showCustomerAddresses(turn, deps);
+  }
+
+  if (turn.input.greeting || turn.input.menu) {
     return landingFor("CUSTOMER");
   }
 

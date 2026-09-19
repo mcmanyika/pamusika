@@ -16,17 +16,25 @@ export default async function AdminCustomersPage() {
     <div>
       <PageHeader
         title="Customers"
-        description="Lightweight WhatsApp buyer records. Phone numbers are hidden from analyst roles."
+        description="WhatsApp buyers and their saved delivery addresses. Phone numbers are hidden from analyst roles."
       />
       <DataTable
-        columns={["Name", "WhatsApp", "Area", "Joined"]}
+        columns={["Name", "WhatsApp", "Addresses", "Default delivery", "Joined"]}
         empty="Buyers are created automatically when they start a WhatsApp conversation."
-        rows={customers.map((customer) => [
-          customer.display_name ?? "—",
-          displayPhone(customer.whatsapp_number, showPhone),
-          locationLabel(customer.area, customer.city),
-          formatDate(customer.created_at),
-        ])}
+        rows={customers.map((customer) => {
+          const defaultAddress = customer.addresses.find((address) => address.is_default);
+          return [
+            customer.display_name ?? "—",
+            displayPhone(customer.whatsapp_number, showPhone),
+            customer.addresses.length === 0 ? "—" : String(customer.addresses.length),
+            defaultAddress
+              ? [defaultAddress.label, defaultAddress.line1, locationLabel(defaultAddress.area, defaultAddress.city)]
+                  .filter((part) => part && part !== "—")
+                  .join(" · ")
+              : "—",
+            formatDate(customer.created_at),
+          ];
+        })}
       />
     </div>
   );

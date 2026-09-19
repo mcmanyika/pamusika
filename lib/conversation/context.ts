@@ -1,5 +1,6 @@
 import type { Json } from "@/types/database";
 import type {
+  AddressDraft,
   OrderDraft,
   ProductDraft,
   RegistrationDraft,
@@ -74,6 +75,7 @@ export function parseSessionContext(value: Json | null | undefined): SessionCont
     search: parseSearch(record.search),
     order: parseOrder(record.order),
     vendorOrders: parseVendorOrders(record.vendorOrders),
+    address: parseAddress(record.address),
   };
 }
 
@@ -174,6 +176,33 @@ export function withProduct(context: SessionContext, patch: ProductDraft): Sessi
   return {
     ...context,
     product: { ...context.product, ...patch },
+  };
+}
+
+function parseAddress(value: unknown): AddressDraft | undefined {
+  const record = asRecord(value);
+  if (!record) {
+    return undefined;
+  }
+
+  const ids = Array.isArray(record.ids)
+    ? record.ids.filter((id): id is string => typeof id === "string")
+    : undefined;
+
+  return {
+    ids,
+    label: asString(record.label),
+    line1: asString(record.line1),
+    line2: asString(record.line2),
+    city: asString(record.city),
+    area: asString(record.area),
+  };
+}
+
+export function withAddress(context: SessionContext, patch: AddressDraft): SessionContext {
+  return {
+    ...context,
+    address: { ...context.address, ...patch },
   };
 }
 

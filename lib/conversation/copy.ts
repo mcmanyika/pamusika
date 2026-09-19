@@ -1,7 +1,7 @@
 import { moneyString, parseDecimal } from "@/lib/commerce/money";
 import { buttonReply, singleMenuReplies } from "@/lib/conversation/replies";
 import { PRODUCT_UNITS } from "@/types/commerce";
-import type { Product, Vendor } from "@/types/database";
+import type { CustomerAddress, Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
 import type { ProductSearchHit } from "@/lib/services/product.service";
 import type { OrderDraft, ProductDraft, RegistrationDraft } from "@/types/conversation";
@@ -49,6 +49,15 @@ export const COPY = {
   orderAlreadyPlaced: "This order was already placed.",
   supportCreated:
     "A support person will follow up on WhatsApp. Reply 1 for the main menu.",
+  askAddressLabel: "What should we call this address?",
+  askAddressLine: "Street, stand, or landmark?",
+  askAddressLocation: "Which city and area?\n\nExample: Harare, Mbare",
+  invalidAddressLine: "Please send a street, stand, or landmark.",
+  invalidAddressLocation: "Please send a city and area. Example: Harare, Mbare",
+  addressSaved: "Delivery address saved.",
+  addressSetDefault: "This is now your default delivery address.",
+  noAddresses: "You have no saved delivery addresses yet.",
+  addressLimit: "You already have 8 saved addresses. Choose one to make it the default.",
 } as const;
 
 export const LANGUAGES = [
@@ -85,7 +94,8 @@ const CUSTOMER_MENU_BUTTONS = [
   { id: "2", title: "📂 Browse Categories" },
   { id: "3", title: "📍 Vendors Near Me" },
   { id: "4", title: "📦 My Orders" },
-  { id: "5", title: "❓ Help / Support" },
+  { id: "5", title: "📍 My Addresses" },
+  { id: "6", title: "❓ Help / Support" },
   { id: "menu", title: "🏠 Main Menu" },
 ];
 
@@ -343,4 +353,57 @@ export function orderQuantityPrompt(name: string, unit: string, available: numbe
   return `How much ${name} would you like?
 
 Available: ${available} ${unit}`;
+}
+
+export function addressLabelReplies(): EngineReply[] {
+  return singleMenuReplies(
+    [
+      { id: "home", title: "Home" },
+      { id: "work", title: "Work" },
+      { id: "other", title: "Other" },
+    ],
+    { header: "Address label" },
+  );
+}
+
+export function addressListReplies(addresses: CustomerAddress[]): EngineReply[] {
+  const rows = addresses.slice(0, 8).map((address, index) => ({
+    id: String(index + 1),
+    title: address.is_default ? `${address.label} (default)` : address.label,
+    description: [address.line1, address.area, address.city].filter(Boolean).join(", "),
+  }));
+
+  if (addresses.length < 8) {
+    rows.push({ id: "add", title: "➕ Add address", description: "Save a new delivery address" });
+  }
+  rows.push({ id: "menu", title: "🏠 Main Menu", description: "Go back to Buyer or Vendor" });
+
+  return singleMenuReplies(rows, {
+    header: "My addresses",
+    body: addresses.length === 0 ? COPY.noAddresses : "Choose an address or add a new one.",
+  });
+}
+
+export function addressConfirmText(draft: {
+  label?: string;
+  line1?: string;
+  city?: string;
+  area?: string;
+}): string {
+  const place = [draft.area, draft.city].filter(Boolean).join(", ") || "Area not set";
+  return `Please confirm:
+
+${draft.label ?? "Home"}
+${draft.line1 ?? ""}
+${place}
+
+Save this delivery address?`;
+}
+
+export function addressSavedText(address: CustomerAddress): string {
+  const place = [address.area, address.city].filter(Boolean).join(", ");
+  return `${COPY.addressSaved}
+
+${address.label}
+${address.line1}${place ? `\n${place}` : ""}${address.is_default ? "\nDefault" : ""}`;
 }

@@ -5,6 +5,7 @@ import type {
   AnalyticsEvent,
   Category,
   Customer,
+  CustomerAddress,
   Order,
   OrderItem,
   Product,
@@ -239,8 +240,30 @@ export async function loadOrders(
   }));
 }
 
-export async function loadCustomers(client: CommerceClient): Promise<Customer[]> {
-  return allCustomers(client);
+export type CustomerListRow = Customer & {
+  addresses: CustomerAddress[];
+};
+
+export async function loadCustomers(client: CommerceClient): Promise<CustomerListRow[]> {
+  const customers = await allCustomers(client);
+  const { data, error } = await client
+    .from("customer_addresses")
+    .select("*")
+    .order("is_default", { ascending: false })
+    .order("created_at", { ascending: true });
+  if (error) throwStoreError(error);
+
+  const addressesByCustomer = new Map<string, CustomerAddress[]>();
+  for (const address of data ?? []) {
+    const current = addressesByCustomer.get(address.customer_id) ?? [];
+    current.push(address);
+    addressesByCustomer.set(address.customer_id, current);
+  }
+
+  return customers.map((customer) => ({
+    ...customer,
+    addresses: addressesByCustomer.get(customer.id) ?? [],
+  }));
 }
 
 export async function loadTickets(

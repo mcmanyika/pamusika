@@ -150,13 +150,7 @@ function isSkip(value: string, choiceId: string | null): boolean {
 
 function isMenu(value: string, choiceId: string | null): boolean {
   const label = value.replace(/^[^\p{L}\p{N}]+/u, "").trim();
-  return (
-    choiceId === "menu" ||
-    label === "menu" ||
-    label === "home" ||
-    label === "main" ||
-    label === "main menu"
-  );
+  return choiceId === "menu" || label === "menu" || label === "main" || label === "main menu";
 }
 
 function isHelp(value: string, choiceId: string | null): boolean {

@@ -15,6 +15,11 @@ export const CONVERSATION_STATES = [
   "ADD_PRODUCT_IMAGE",
   "ADD_PRODUCT_CONFIRM",
   "CUSTOMER_MENU",
+  "CUSTOMER_ADDRESSES",
+  "CUSTOMER_ADDRESS_LABEL",
+  "CUSTOMER_ADDRESS_LINE",
+  "CUSTOMER_ADDRESS_LOCATION",
+  "CUSTOMER_ADDRESS_CONFIRM",
   "SEARCH_PRODUCT_QUERY",
   "SEARCH_LOCATION",
   "SEARCH_RESULTS",
@@ -75,6 +80,15 @@ export type VendorOrderDraft = {
   selectedId?: string;
 };
 
+export type AddressDraft = {
+  ids?: string[];
+  label?: string;
+  line1?: string;
+  line2?: string;
+  city?: string;
+  area?: string;
+};
+
 export type SessionContext = {
   registration?: RegistrationDraft;
   product?: ProductDraft;
@@ -82,6 +96,7 @@ export type SessionContext = {
   search?: SearchDraft;
   order?: OrderDraft;
   vendorOrders?: VendorOrderDraft;
+  address?: AddressDraft;
 };
 
 export const MESSAGE_DIRECTIONS = ["INBOUND", "OUTBOUND"] as const;

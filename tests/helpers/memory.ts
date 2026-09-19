@@ -10,7 +10,7 @@ import type { ProductSearchHit, ProductStore } from "@/lib/services/product.serv
 import type { VendorStore } from "@/lib/services/vendor.service";
 import type { CategoryStore } from "@/lib/services/category.service";
 import type { SupportStore } from "@/lib/services/support.service";
-import type { Customer, Category, Product, SupportTicket, Vendor } from "@/types/database";
+import type { Customer, CustomerAddress, Category, Product, SupportTicket, Vendor } from "@/types/database";
 import type { OrderStatus, ProductStatus } from "@/types/commerce";
 
 export function createMemoryIdempotencyStore(): IdempotencyStore {
@@ -62,7 +62,10 @@ export function createMemoryVendorStore(seed: Vendor[] = []): VendorStore {
   };
 }
 
-export function createMemoryCustomerStore(seed: Customer[] = []): CustomerStore {
+export function createMemoryCustomerStore(
+  seed: Customer[] = [],
+  addresses: CustomerAddress[] = [],
+): CustomerStore {
   const customers = seed;
 
   return {
@@ -87,6 +90,31 @@ export function createMemoryCustomerStore(seed: Customer[] = []): CustomerStore 
         updated_at: new Date().toISOString(),
       };
       return customers[index];
+    },
+    async listAddresses(customerId) {
+      return addresses
+        .filter((address) => address.customer_id === customerId)
+        .slice()
+        .sort((left, right) => Number(right.is_default) - Number(left.is_default));
+    },
+    async findAddress(id) {
+      return addresses.find((address) => address.id === id) ?? null;
+    },
+    async createAddress(address) {
+      addresses.push(address);
+      return address;
+    },
+    async updateAddress(id, patch) {
+      const index = addresses.findIndex((address) => address.id === id);
+      if (index === -1) {
+        throw new CommerceError("ADDRESS_NOT_FOUND", "Address not found");
+      }
+      addresses[index] = {
+        ...addresses[index],
+        ...patch,
+        updated_at: new Date().toISOString(),
+      };
+      return addresses[index];
     },
   };
 }

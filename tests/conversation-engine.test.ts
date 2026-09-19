@@ -202,7 +202,8 @@ describe("conversation engine", () => {
               { id: "2", title: "📂 Browse Categories" },
               { id: "3", title: "📍 Vendors Near Me" },
               { id: "4", title: "📦 My Orders" },
-              { id: "5", title: "❓ Help / Support" },
+              { id: "5", title: "📍 My Addresses" },
+              { id: "6", title: "❓ Help / Support" },
               { id: "menu", title: "🏠 Main Menu" },
             ],
           },
@@ -345,6 +346,38 @@ describe("conversation engine", () => {
 
     expect(orders[0]?.status).toBe("COMPLETED");
     expect(products[0]?.quantity).toBe("17");
+  });
+
+  it("lets a buyer save more than one delivery address", async () => {
+    const { engine, customers, addresses } = createConversationHarness();
+    await say(engine, "Buyer", { type: "interactive", choiceId: "buyer" });
+    const opened = await say(engine, "5");
+    expect(opened.session.current_state).toBe("CUSTOMER_ADDRESSES");
+    const adding = await say(engine, "Add address", { type: "interactive", choiceId: "add" });
+    expect(adding.session.current_state).toBe("CUSTOMER_ADDRESS_LABEL");
+    const labeled = await say(engine, "Home", { type: "interactive", choiceId: "home" });
+    expect(labeled.session.current_state).toBe("CUSTOMER_ADDRESS_LINE");
+    const lined = await say(engine, "Stand 14, Mbare Musika");
+    expect(lined.session.current_state).toBe("CUSTOMER_ADDRESS_LOCATION");
+    const located = await say(engine, "Harare, Mbare");
+    expect(located.session.current_state).toBe("CUSTOMER_ADDRESS_CONFIRM");
+    const saved = await say(engine, "YES", { choiceId: "yes" });
+    expect(saved.session.current_state).toBe("CUSTOMER_ADDRESSES");
+    expect(addresses).toHaveLength(1);
+
+    await say(engine, "Add address", { type: "interactive", choiceId: "add" });
+    await say(engine, "Work", { type: "interactive", choiceId: "work" });
+    await say(engine, "Joina City");
+    await say(engine, "Harare, CBD");
+    const result = await say(engine, "YES", { choiceId: "yes" });
+
+    expect(customers).toHaveLength(1);
+    expect(addresses).toHaveLength(2);
+    expect(addresses.filter((address) => address.is_default)).toHaveLength(1);
+    expect(addresses[0]?.line1).toBe("Stand 14, Mbare Musika");
+    expect(addresses[1]?.label).toBe("Work");
+    expect(result.session.current_state).toBe("CUSTOMER_ADDRESSES");
+    expect(result.identity.userType).toBe("CUSTOMER");
   });
 
   it("creates a support ticket when the user asks to talk to support", async () => {

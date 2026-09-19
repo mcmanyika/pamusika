@@ -38,6 +38,18 @@ export const upsertCustomerSchema = z.object({
   preferredLanguage: z.string().trim().min(2).default("en"),
 });
 
+export const createCustomerAddressSchema = z.object({
+  customerId: z.string().min(1),
+  label: z.string().trim().min(1).max(24).default("Home"),
+  line1: z.string().trim().min(3, "Address is required"),
+  line2: z.string().trim().min(1).optional(),
+  area: z.string().trim().min(1).optional(),
+  city: z.string().trim().min(1).optional(),
+  province: z.string().trim().min(1).optional(),
+  country: z.string().trim().min(1).default("Zimbabwe"),
+  isDefault: z.boolean().optional(),
+});
+
 export const createProductDraftSchema = z.object({
   vendorId: z.string().min(1),
   name: z.string().trim().min(1, "Product name is required"),
@@ -71,6 +83,7 @@ export const createOrderSchema = z.object({
 export type RegisterVendorInput = z.input<typeof registerVendorSchema>;
 export type UpdateVendorInput = z.input<typeof updateVendorSchema>;
 export type UpsertCustomerInput = z.input<typeof upsertCustomerSchema>;
+export type CreateCustomerAddressInput = z.input<typeof createCustomerAddressSchema>;
 export type CreateProductDraftInput = z.input<typeof createProductDraftSchema>;
 export type SearchProductsInput = z.input<typeof searchProductsSchema>;
 export type CreateOrderInput = z.input<typeof createOrderSchema>;

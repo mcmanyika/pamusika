@@ -64,6 +64,15 @@ VALUES
   ('b5555555-5555-4555-8555-555555555555', '+263772000005', 'Blessing', 'Zimbabwe', 'Harare', 'Mbare', 'en')
 ON CONFLICT (id) DO NOTHING;
 
+INSERT INTO public.customer_addresses (
+  id, customer_id, label, line1, area, city, country, is_default
+)
+VALUES
+  ('d1111111-1111-4111-8111-111111111111', 'b1111111-1111-4111-8111-111111111111', 'Home', 'Stand 14, Mbare Musika', 'Mbare', 'Harare', 'Zimbabwe', true),
+  ('d1111111-1111-4111-8111-111111111112', 'b1111111-1111-4111-8111-111111111111', 'Work', 'Joina City, 8th floor', 'CBD', 'Harare', 'Zimbabwe', false),
+  ('d2222222-2222-4222-8222-222222222221', 'b2222222-2222-4222-8222-222222222222', 'Home', '12 King George Road', 'Avondale', 'Harare', 'Zimbabwe', true)
+ON CONFLICT (id) DO NOTHING;
+
 INSERT INTO public.products (
   id, vendor_id, category_id, name, price, currency, quantity, unit, status
 )

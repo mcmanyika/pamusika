@@ -61,6 +61,20 @@ export type Database = {
         created_at: string;
         updated_at: string;
       }>;
+      customer_addresses: TableDefinition<{
+        id: string;
+        customer_id: string;
+        label: string;
+        line1: string;
+        line2: string | null;
+        area: string | null;
+        city: string | null;
+        province: string | null;
+        country: string;
+        is_default: boolean;
+        created_at: string;
+        updated_at: string;
+      }>;
       categories: TableDefinition<{
         id: string;
         name: string;
@@ -230,6 +244,7 @@ export type Database = {
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Vendor = Database["public"]["Tables"]["vendors"]["Row"];
 export type Customer = Database["public"]["Tables"]["customers"]["Row"];
+export type CustomerAddress = Database["public"]["Tables"]["customer_addresses"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Product = Database["public"]["Tables"]["products"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"];

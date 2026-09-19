@@ -82,4 +82,37 @@ describe("customer onboarding", () => {
     expect(second.customer.id).toBe(first.customer.id);
     expect(second.customer.area).toBe("Mbare");
   });
+
+  it("stores multiple delivery addresses and keeps one default", async () => {
+    const service = new CustomerService(createMemoryCustomerStore());
+    const { customer } = await service.getOrCreate({
+      whatsappNumber: "+263770001111",
+      displayName: "Chipo",
+    });
+
+    const home = await service.addAddress({
+      customerId: customer.id,
+      label: "Home",
+      line1: "Stand 14, Mbare Musika",
+      city: "Harare",
+      area: "Mbare",
+    });
+    const work = await service.addAddress({
+      customerId: customer.id,
+      label: "Work",
+      line1: "Joina City",
+      city: "Harare",
+      area: "CBD",
+    });
+
+    expect(home.is_default).toBe(true);
+    expect(work.is_default).toBe(false);
+    expect(await service.listAddresses(customer.id)).toHaveLength(2);
+
+    const updated = await service.setDefaultAddress(customer.id, work.id);
+    const listed = await service.listAddresses(customer.id);
+    expect(updated.is_default).toBe(true);
+    expect(listed.find((address) => address.id === home.id)?.is_default).toBe(false);
+    expect(listed.find((address) => address.id === work.id)?.is_default).toBe(true);
+  });
 });
