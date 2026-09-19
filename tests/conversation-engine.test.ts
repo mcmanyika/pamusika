@@ -23,7 +23,6 @@ describe("conversation engine", () => {
       result.replies[0]?.kind === "interactive" && result.replies[0].message,
     ).toMatchObject({
       header: "PaySell Musika",
-      footer: "Tap a button to continue",
       buttons: [
         { id: "buyer", title: "Buyer" },
         { id: "vendor", title: "Vendor" },

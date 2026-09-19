@@ -103,7 +103,6 @@ export function mainMenuReply(): EngineReply {
     ],
     {
       header: "PaySell Musika",
-      footer: "Tap a button to continue",
     },
   );
 }
@@ -126,7 +125,6 @@ export function helpReplies(): EngineReply[] {
   return singleMenuReplies(HELP_MENU_BUTTONS, {
     header: "PaySell Help",
     body: helpText(),
-    footer: "Tap a button to continue",
   });
 }
 
