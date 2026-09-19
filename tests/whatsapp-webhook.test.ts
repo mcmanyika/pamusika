@@ -226,7 +226,7 @@ describe("webhook processing", () => {
   it("replies with the main menu for supported text", async () => {
     const { engine, logs, sender, sent } = createProcessor();
     await processInboundPayload(textPayload("wamid.hello"), { engine, logs, sender });
-    expect(sent[0]?.body).toBe(" ");
+    expect(sent[0]?.body).toBe("Choose an option.");
     expect(sent[0]?.to).toBe("263771234567");
     expect(sent[0]?.buttons).toEqual([
       { id: "buyer", title: "Buyer" },

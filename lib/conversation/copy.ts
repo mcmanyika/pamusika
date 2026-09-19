@@ -58,8 +58,7 @@ export const LANGUAGES = [
 ] as const;
 
 export function mainMenuText(): string {
-  // Meta still requires interactive.body.text; a space keeps the card body blank.
-  return " ";
+  return "Choose an option.";
 }
 
 export function helpText(): string {

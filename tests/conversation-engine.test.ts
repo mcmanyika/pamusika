@@ -18,7 +18,7 @@ describe("conversation engine", () => {
     expect(result.replies[0]).toMatchObject({ kind: "interactive" });
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toBe(" ");
+    ).toBe("Choose an option.");
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message,
     ).toMatchObject({
@@ -152,6 +152,22 @@ describe("conversation engine", () => {
     expect(result.replies.some((reply) => reply.kind === "text" && /Photo uploads/.test(reply.text))).toBe(
       true,
     );
+  });
+
+  it("returns the clickable home menu when the user sends Menu", async () => {
+    const { engine } = createConversationHarness();
+    await say(engine, "Buyer", { type: "interactive", choiceId: "buyer" });
+    const result = await say(engine, "Menu");
+
+    expect(result.session.current_state).toBe("MAIN_MENU");
+    expect(result.replies[0]?.kind === "interactive" && result.replies[0].message).toMatchObject({
+      header: "PaySell Musika",
+      body: "Choose an option.",
+      buttons: [
+        { id: "buyer", title: "Buyer" },
+        { id: "vendor", title: "Vendor" },
+      ],
+    });
   });
 
   it("opens vendor registration from the Vendor Menu button", async () => {

@@ -123,12 +123,13 @@ export function interactivePayload(message: WhatsAppInteractiveMessage): Record<
     ? { header: { type: "text", text: clamp(message.header, 60) } }
     : {};
   const footer = message.footer ? { footer: { text: clamp(message.footer, 60) } } : {};
+  const body = { text: message.body.trim() || "Choose an option." };
 
   if (message.list) {
     return {
       type: "list",
       ...header,
-      body: { text: message.body },
+      body,
       ...footer,
       action: {
         button: clamp(message.list.button, 20),
@@ -147,7 +148,7 @@ export function interactivePayload(message: WhatsAppInteractiveMessage): Record<
   return {
     type: "button",
     ...header,
-    body: { text: message.body },
+    body,
     ...footer,
     action: {
       buttons: (message.buttons ?? []).slice(0, 3).map((button) => ({

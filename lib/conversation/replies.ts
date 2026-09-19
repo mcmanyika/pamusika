@@ -1,5 +1,11 @@
 import type { EngineReply, WhatsAppInteractiveMessage, WhatsAppListRow } from "@/types/whatsapp";
 
+export const REQUIRED_INTERACTIVE_BODY = "Choose an option.";
+
+export function requiredInteractiveBody(body: string): string {
+  return body.trim() || REQUIRED_INTERACTIVE_BODY;
+}
+
 export function textReply(text: string): EngineReply {
   return { kind: "text", text };
 }
@@ -10,7 +16,7 @@ export function buttonReply(
   extras: { header?: string; footer?: string } = {},
 ): EngineReply {
   const message: WhatsAppInteractiveMessage = {
-    body,
+    body: requiredInteractiveBody(body),
     header: extras.header,
     footer: extras.footer,
     buttons: buttons.slice(0, 3),
@@ -31,13 +37,30 @@ export function menuButtonReplies(
   for (let index = 0; index < buttons.length; index += 3) {
     const first = index === 0;
     replies.push(
-      buttonReply(first ? (extras.body ?? " ") : " ", buttons.slice(index, index + 3), {
-        header: first ? extras.header : undefined,
-        footer: first ? extras.footer : undefined,
-      }),
+      buttonReply(
+        first ? (extras.body ?? REQUIRED_INTERACTIVE_BODY) : "More options.",
+        buttons.slice(index, index + 3),
+        {
+          header: first ? extras.header : undefined,
+          footer: first ? extras.footer : undefined,
+        },
+      ),
     );
   }
   return replies;
+}
+
+export function interactiveFallbackText(message: WhatsAppInteractiveMessage): string {
+  const labels = [
+    ...(message.buttons ?? []).map((button) => button.title),
+    ...(message.list?.sections.flatMap((section) => section.rows.map((row) => row.title)) ?? []),
+  ];
+  const body = message.body.trim();
+  if (labels.length === 0) {
+    return body || REQUIRED_INTERACTIVE_BODY;
+  }
+  const options = labels.map((title, index) => `${index + 1} — ${title}`).join("\n");
+  return body ? `${body}\n\n${options}` : options;
 }
 
 export function listReply(

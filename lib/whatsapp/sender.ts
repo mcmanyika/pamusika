@@ -1,3 +1,4 @@
+import { interactiveFallbackText } from "@/lib/conversation/replies";
 import { isWhatsAppError } from "@/lib/whatsapp/errors";
 import { logger } from "@/lib/utils/logger";
 import type { MessageLogService } from "@/lib/services/message-log.service";
@@ -46,14 +47,15 @@ export class WhatsAppSender {
             result: "interactive_fallback",
             error: isWhatsAppError(error) ? error.code : "unknown",
           });
-          const result = await this.client.sendTextMessage(input.to, reply.message.body, {
+          const fallback = interactiveFallbackText(reply.message);
+          const result = await this.client.sendTextMessage(input.to, fallback, {
             replyToMessageId: input.replyToMessageId,
           });
           await this.logs.logOutbound({
             externalMessageId: result.id,
             phoneNumber: input.phoneNumber,
             messageType: "text",
-            messageText: reply.message.body,
+            messageText: fallback,
             payload: { to: input.to, type: "text", fallback: true },
           });
         }

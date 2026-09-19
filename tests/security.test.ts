@@ -114,7 +114,7 @@ describe("menu buttons", () => {
     const payload = interactivePayload(reply.message);
     expect(payload.type).toBe("button");
     expect(payload.header).toEqual({ type: "text", text: "PaySell Musika" });
-    expect(payload.body).toEqual({ text: " " });
+    expect(payload.body).toEqual({ text: "Choose an option." });
     expect(payload.action).toEqual({
       buttons: [
         { type: "reply", reply: { id: "buyer", title: "Buyer" } },
@@ -131,8 +131,21 @@ describe("menu buttons", () => {
       if (reply.kind !== "interactive") {
         continue;
       }
+      expect(reply.message.body.trim()).not.toBe("");
       expect(reply.message.list).toBeUndefined();
       expect(interactivePayload(reply.message).type).toBe("button");
     }
+  });
+
+  it("never sends a blank interactive body, which Meta rejects", () => {
+    const payload = interactivePayload({
+      body: " ",
+      header: "PaySell Musika",
+      buttons: [
+        { id: "buyer", title: "Buyer" },
+        { id: "vendor", title: "Vendor" },
+      ],
+    });
+    expect(payload.body).toEqual({ text: "Choose an option." });
   });
 });
