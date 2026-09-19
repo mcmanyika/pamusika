@@ -1,11 +1,11 @@
 import { moneyString, parseDecimal } from "@/lib/commerce/money";
-import { buttonReply, listReply } from "@/lib/conversation/replies";
+import { buttonReply, menuButtonReplies } from "@/lib/conversation/replies";
 import { PRODUCT_UNITS } from "@/types/commerce";
 import type { Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
 import type { ProductSearchHit } from "@/lib/services/product.service";
 import type { OrderDraft, ProductDraft, RegistrationDraft } from "@/types/conversation";
-import type { EngineReply, WhatsAppListRow } from "@/types/whatsapp";
+import type { EngineReply } from "@/types/whatsapp";
 
 export const COPY = {
   unsupported:
@@ -58,21 +58,8 @@ export const LANGUAGES = [
 ] as const;
 
 export function mainMenuText(): string {
-  return `Commerce through conversation.
-
-Shop as a buyer, or sell as a vendor.`;
-}
-
-export function vendorMenuText(): string {
-  return `Vendor menu
-
-Manage products, orders, and your business.`;
-}
-
-export function customerMenuText(): string {
-  return `Buyer menu
-
-Find products and track collection orders.`;
+  // Meta still requires interactive.body.text; a space keeps the card body blank.
+  return " ";
 }
 
 export function helpText(): string {
@@ -84,26 +71,28 @@ Vendors can list products and accept, ready, and complete orders.
 What would you like to do?`;
 }
 
-const VENDOR_MENU_ROWS: WhatsAppListRow[] = [
-  { id: "1", title: "➕ Sell a Product", description: "List a new product for sale" },
-  { id: "2", title: "📦 My Products", description: "View, update or remove your products" },
-  { id: "3", title: "🛒 Customer Orders", description: "View and manage your orders" },
-  { id: "4", title: "📊 My Sales", description: "See your sales summary" },
-  { id: "5", title: "🏪 My Business", description: "View or update your business details" },
-  { id: "6", title: "❓ Help / Support", description: "Get help or speak to our team" },
+const VENDOR_MENU_BUTTONS = [
+  { id: "1", title: "➕ Sell a Product" },
+  { id: "2", title: "📦 My Products" },
+  { id: "3", title: "🛒 Customer Orders" },
+  { id: "4", title: "📊 My Sales" },
+  { id: "5", title: "🏪 My Business" },
+  { id: "6", title: "❓ Help / Support" },
+  { id: "menu", title: "🏠 Main Menu" },
 ];
 
-const CUSTOMER_MENU_ROWS: WhatsAppListRow[] = [
-  { id: "1", title: "🔎 Find Products", description: "Search for something to buy" },
-  { id: "2", title: "📂 Browse Categories", description: "Shop by product category" },
-  { id: "3", title: "📍 Vendors Near Me", description: "Find sellers in your area" },
-  { id: "4", title: "📦 My Orders", description: "View and track your orders" },
-  { id: "5", title: "❓ Help / Support", description: "Get help or speak to our team" },
+const CUSTOMER_MENU_BUTTONS = [
+  { id: "1", title: "🔎 Find Products" },
+  { id: "2", title: "📂 Browse Categories" },
+  { id: "3", title: "📍 Vendors Near Me" },
+  { id: "4", title: "📦 My Orders" },
+  { id: "5", title: "❓ Help / Support" },
+  { id: "menu", title: "🏠 Main Menu" },
 ];
 
-const HELP_MENU_ROWS: WhatsAppListRow[] = [
-  { id: "1", title: "🏠 Main Menu", description: "Go back to the main menu" },
-  { id: "2", title: "👤 Talk to Support", description: "Ask a person to follow up" },
+const HELP_MENU_BUTTONS = [
+  { id: "1", title: "🏠 Main Menu" },
+  { id: "2", title: "👤 Talk to Support" },
 ];
 
 export function mainMenuReply(): EngineReply {
@@ -114,51 +103,84 @@ export function mainMenuReply(): EngineReply {
       { id: "vendor", title: "Vendor" },
     ],
     {
-      header: "PaySell",
+      header: "PaySell Musika",
       footer: "Tap a button to continue",
     },
   );
 }
 
-export function vendorMenuReply(): EngineReply {
-  return listReply(vendorMenuText(), VENDOR_MENU_ROWS);
+export function vendorMenuReplies(): EngineReply[] {
+  return menuButtonReplies(VENDOR_MENU_BUTTONS, {
+    header: "Vendor menu",
+    footer: "Tap a button to continue",
+  });
 }
 
-export function customerMenuReply(): EngineReply {
-  return listReply(customerMenuText(), CUSTOMER_MENU_ROWS);
+export function customerMenuReplies(): EngineReply[] {
+  return menuButtonReplies(CUSTOMER_MENU_BUTTONS, {
+    header: "Buyer menu",
+    footer: "Tap a button to continue",
+  });
 }
 
-export function helpReply(): EngineReply {
-  return listReply(helpText(), HELP_MENU_ROWS);
+export function helpReplies(): EngineReply[] {
+  return menuButtonReplies(HELP_MENU_BUTTONS, {
+    header: "PaySell Help",
+    body: helpText(),
+    footer: "Tap a button to continue",
+  });
 }
 
-export function categoryMenuText(categories: Array<{ name: string }>): string {
-  const lines = categories.map((category, index) => `${index + 1} — ${category.name}`);
-  return `What do you sell?
-
-${lines.join("\n")}`;
+export function categoryMenuReplies(categories: Array<{ name: string }>): EngineReply[] {
+  return menuButtonReplies(
+    categories.slice(0, 10).map((category, index) => ({
+      id: String(index + 1),
+      title: category.name,
+    })),
+    {
+      header: "What do you sell?",
+      footer: "Tap a category",
+    },
+  );
 }
 
-export function browseCategoryMenuText(categories: Array<{ name: string }>): string {
-  const lines = categories.map((category, index) => `${index + 1} — ${category.name}`);
-  return `Browse categories
-
-${lines.join("\n")}`;
+export function browseCategoryMenuReplies(categories: Array<{ name: string }>): EngineReply[] {
+  return menuButtonReplies(
+    categories.slice(0, 10).map((category, index) => ({
+      id: String(index + 1),
+      title: category.name,
+    })),
+    {
+      header: "Browse categories",
+      footer: "Tap a category",
+    },
+  );
 }
 
-export function languageMenuText(): string {
-  return `What language do you prefer?
-
-1 — English
-2 — Shona
-3 — Ndebele`;
+export function languageMenuReplies(): EngineReply[] {
+  return menuButtonReplies(
+    LANGUAGES.map((language, index) => ({
+      id: String(index + 1),
+      title: language.label,
+    })),
+    {
+      header: "Language",
+      footer: "Tap a language",
+    },
+  );
 }
 
-export function unitMenuText(): string {
-  const lines = PRODUCT_UNITS.map((unit, index) => `${index + 1} — ${unit}`);
-  return `What unit?
-
-${lines.join("\n")}`;
+export function unitMenuReplies(): EngineReply[] {
+  return menuButtonReplies(
+    PRODUCT_UNITS.map((unit, index) => ({
+      id: String(index + 1),
+      title: unit,
+    })),
+    {
+      header: "What unit?",
+      footer: "Tap a unit",
+    },
+  );
 }
 
 export function registrationConfirmText(draft: RegistrationDraft): string {

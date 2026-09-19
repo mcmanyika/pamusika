@@ -149,7 +149,14 @@ function isSkip(value: string, choiceId: string | null): boolean {
 }
 
 function isMenu(value: string, choiceId: string | null): boolean {
-  return choiceId === "menu" || value === "menu" || value === "home" || value === "main";
+  const label = value.replace(/^[^\p{L}\p{N}]+/u, "").trim();
+  return (
+    choiceId === "menu" ||
+    label === "menu" ||
+    label === "home" ||
+    label === "main" ||
+    label === "main menu"
+  );
 }
 
 function isHelp(value: string, choiceId: string | null): boolean {

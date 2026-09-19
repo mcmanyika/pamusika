@@ -1,4 +1,4 @@
-import { COPY, helpReply, mainMenuReply } from "@/lib/conversation/copy";
+import { COPY, helpReplies, mainMenuReply } from "@/lib/conversation/copy";
 import { textReply } from "@/lib/conversation/replies";
 import type {
   ConversationEngineDeps,
@@ -19,7 +19,7 @@ export function showHelp(): HandlerResult {
   return {
     state: "SUPPORT",
     context: {},
-    replies: [helpReply()],
+    replies: helpReplies(),
   };
 }
 

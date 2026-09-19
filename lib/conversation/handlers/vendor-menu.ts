@@ -1,8 +1,8 @@
 import {
   COPY,
-  helpReply,
+  helpReplies,
   productListText,
-  vendorMenuReply,
+  vendorMenuReplies,
   vendorProfileText,
 } from "@/lib/conversation/copy";
 import { landingFor } from "@/lib/conversation/handlers/shared";
@@ -20,7 +20,7 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
     return picked;
   }
 
-  if (turn.input.greeting || turn.input.menu) {
+  if (turn.input.greeting || turn.input.menu || turn.input.choice === 7) {
     return landingFor();
   }
 
@@ -28,7 +28,7 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
     return {
       state: "SUPPORT",
       context: {},
-        replies: [helpReply()],
+        replies: helpReplies(),
     };
   }
 
@@ -88,6 +88,6 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
   return {
     state: "VENDOR_MENU",
     context: {},
-    replies: [vendorMenuReply()],
+    replies: vendorMenuReplies(),
   };
 };

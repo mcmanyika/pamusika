@@ -18,11 +18,11 @@ describe("conversation engine", () => {
     expect(result.replies[0]).toMatchObject({ kind: "interactive" });
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/Commerce through conversation/i);
+    ).toBe(" ");
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message,
     ).toMatchObject({
-      header: "PaySell",
+      header: "PaySell Musika",
       footer: "Tap a button to continue",
       buttons: [
         { id: "buyer", title: "Buyer" },
@@ -54,7 +54,7 @@ describe("conversation engine", () => {
     expect(result.session.current_state).toBe("VENDOR_MENU");
     expect(
       result.replies.some(
-        (reply) => reply.kind === "interactive" && /vendor menu/i.test(reply.message.body),
+        (reply) => reply.kind === "interactive" && reply.message.header === "Vendor menu",
       ),
     ).toBe(true);
   });
@@ -173,8 +173,59 @@ describe("conversation engine", () => {
     });
     expect(result.session.current_state).toBe("CUSTOMER_MENU");
     expect(
-      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/Buyer menu/i);
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.header,
+    ).toBe("Buyer menu");
+    expect(
+      result.replies.flatMap((reply) =>
+        reply.kind === "interactive" ? (reply.message.buttons ?? []) : [],
+      ),
+    ).toEqual([
+      { id: "1", title: "🔎 Find Products" },
+      { id: "2", title: "📂 Browse Categories" },
+      { id: "3", title: "📍 Vendors Near Me" },
+      { id: "4", title: "📦 My Orders" },
+      { id: "5", title: "❓ Help / Support" },
+      { id: "menu", title: "🏠 Main Menu" },
+    ]);
+    expect(result.replies.every((reply) => reply.kind === "interactive" && !reply.message.list)).toBe(
+      true,
+    );
+  });
+
+  it("returns to the main menu from buyer and vendor menus", async () => {
+    const { engine } = createConversationHarness();
+    await say(engine, "hi");
+    await say(engine, "Buyer", { type: "interactive", choiceId: "buyer" });
+
+    const fromBuyer = await say(engine, "Main Menu", {
+      type: "interactive",
+      choiceId: "menu",
+    });
+    expect(fromBuyer.session.current_state).toBe("MAIN_MENU");
+    expect(fromBuyer.replies[0]?.kind === "interactive" && fromBuyer.replies[0].message.buttons).toEqual([
+      { id: "buyer", title: "Buyer" },
+      { id: "vendor", title: "Vendor" },
+    ]);
+
+    await say(engine, "2");
+    await say(engine, "Tariro");
+    await say(engine, "Tariro Fresh Produce");
+    await say(engine, "1");
+    await say(engine, "Harare, Mbare");
+    await say(engine, "1");
+    await say(engine, "YES", { choiceId: "yes" });
+    expect((await say(engine, "hello")).session.current_state).toBe("MAIN_MENU");
+
+    await say(engine, "Vendor", { type: "interactive", choiceId: "vendor" });
+    const fromVendor = await say(engine, "Main Menu", {
+      type: "interactive",
+      choiceId: "menu",
+    });
+    expect(fromVendor.session.current_state).toBe("MAIN_MENU");
+    expect(fromVendor.replies[0]?.kind === "interactive" && fromVendor.replies[0].message.buttons).toEqual([
+      { id: "buyer", title: "Buyer" },
+      { id: "vendor", title: "Vendor" },
+    ]);
   });
 
   it("returns registered vendors to the two-button main menu", async () => {
@@ -200,8 +251,18 @@ describe("conversation engine", () => {
     });
     expect(vendor.session.current_state).toBe("VENDOR_MENU");
     expect(
-      vendor.replies[0]?.kind === "interactive" && vendor.replies[0].message.body,
-    ).toMatch(/vendor menu/i);
+      vendor.replies[0]?.kind === "interactive" && vendor.replies[0].message.header,
+    ).toBe("Vendor menu");
+    expect(
+      vendor.replies.flatMap((reply) =>
+        reply.kind === "interactive" ? (reply.message.buttons ?? []) : [],
+      ),
+    ).toEqual(
+      expect.arrayContaining([
+        { id: "1", title: "➕ Sell a Product" },
+        { id: "menu", title: "🏠 Main Menu" },
+      ]),
+    );
   });
 
   it("lets a customer search, order, and a vendor complete the sale", async () => {

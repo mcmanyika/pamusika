@@ -1,4 +1,4 @@
-import { COPY, LANGUAGES, categoryMenuText, languageMenuText, registrationConfirmText, vendorMenuReply } from "@/lib/conversation/copy";
+import { COPY, LANGUAGES, categoryMenuReplies, languageMenuReplies, registrationConfirmText, vendorMenuReplies } from "@/lib/conversation/copy";
 import { withRegistration } from "@/lib/conversation/context";
 import { continueProductDraft } from "@/lib/conversation/handlers/add-product";
 import { landingFor } from "@/lib/conversation/handlers/shared";
@@ -41,7 +41,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
     return {
       state: "VENDOR_REGISTRATION_CATEGORY",
       context: withRegistration(turn.context, { businessName }),
-      replies: [await categoryPrompt(deps)],
+      replies: await categoryPrompt(deps),
     };
   }
 
@@ -60,7 +60,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
       return {
         state: "VENDOR_REGISTRATION_CATEGORY",
         context: turn.context,
-        replies: [textReply(COPY.invalidCategory), await categoryPrompt(deps)],
+        replies: [textReply(COPY.invalidCategory), ...(await categoryPrompt(deps))],
       };
     }
 
@@ -73,7 +73,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
       return {
         state: "VENDOR_REGISTRATION_LANGUAGE",
         context: next,
-        replies: [textReply(languageMenuText())],
+        replies: languageMenuReplies(),
       };
     }
 
@@ -97,7 +97,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
     return {
       state: "VENDOR_REGISTRATION_LANGUAGE",
       context: withRegistration(turn.context, location),
-      replies: [textReply(languageMenuText())],
+      replies: languageMenuReplies(),
     };
   }
 
@@ -107,7 +107,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
       return {
         state: "VENDOR_REGISTRATION_LANGUAGE",
         context: turn.context,
-        replies: [textReply(COPY.invalidLanguage)],
+        replies: [textReply(COPY.invalidLanguage), ...languageMenuReplies()],
       };
     }
 
@@ -162,7 +162,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
       state: "VENDOR_MENU",
       context: {},
       identity,
-      replies: [textReply(COPY.registered), vendorMenuReply()],
+      replies: [textReply(COPY.registered), ...vendorMenuReplies()],
     };
   }
 
@@ -198,7 +198,7 @@ export async function startVendorRegistration(
   return {
     state: "VENDOR_REGISTRATION_CATEGORY",
     context,
-    replies: [await categoryPrompt(deps)],
+    replies: await categoryPrompt(deps),
   };
 }
 
@@ -217,7 +217,7 @@ function confirmDraft(context: SessionContext): HandlerResult {
 async function categoryPrompt(deps: ConversationEngineDeps) {
   const categories = await deps.categories.listActive();
   if (categories.length === 0) {
-    return textReply(COPY.noCategories);
+    return [textReply(COPY.noCategories)];
   }
-  return textReply(categoryMenuText(categories));
+  return categoryMenuReplies(categories);
 }

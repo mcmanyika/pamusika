@@ -1,10 +1,10 @@
 import { parseProductNumbers } from "@/lib/services/product.service";
 import {
   COPY,
-  browseCategoryMenuText,
-  customerMenuReply,
+  browseCategoryMenuReplies,
+  customerMenuReplies,
   customerOrdersText,
-  helpReply,
+  helpReplies,
   orderQuantityPrompt,
   orderSummaryText,
   searchResultsText,
@@ -54,7 +54,7 @@ export const handleBuyer: ConversationHandler = async (turn, deps) => {
     return {
       state: "CUSTOMER_MENU",
       context: turn.context,
-      replies: [textReply(COPY.orderPlaced), customerMenuReply()],
+      replies: [textReply(COPY.orderPlaced), ...customerMenuReplies()],
     };
   }
 
@@ -74,7 +74,7 @@ async function handleCustomerMenu(
     return {
       state: "SUPPORT",
       context: {},
-        replies: [helpReply()],
+        replies: helpReplies(),
     };
   }
 
@@ -98,7 +98,7 @@ async function handleCustomerMenu(
     return {
       state: "SEARCH_PRODUCT_QUERY",
       context: { search: { mode: "category" } },
-      replies: [textReply(browseCategoryMenuText(categories))],
+      replies: browseCategoryMenuReplies(categories),
     };
   }
 
@@ -126,14 +126,14 @@ async function handleCustomerMenu(
     };
   }
 
-  if (turn.input.greeting || turn.input.menu) {
+  if (turn.input.greeting || turn.input.menu || turn.input.choice === 6) {
     return landingFor("CUSTOMER");
   }
 
   return {
     state: "CUSTOMER_MENU",
     context: {},
-    replies: [customerMenuReply()],
+    replies: customerMenuReplies(),
   };
 }
 
@@ -150,7 +150,7 @@ async function handleSearchQuery(
       return {
         state: "SEARCH_PRODUCT_QUERY",
         context: { search },
-        replies: [textReply(COPY.invalidCategory), textReply(browseCategoryMenuText(categories))],
+        replies: [textReply(COPY.invalidCategory), ...browseCategoryMenuReplies(categories)],
       };
     }
 
@@ -279,7 +279,7 @@ async function handleOrderConfirm(
     return {
       state: "CUSTOMER_MENU",
       context: {},
-      replies: [customerMenuReply()],
+      replies: customerMenuReplies(),
     };
   }
 

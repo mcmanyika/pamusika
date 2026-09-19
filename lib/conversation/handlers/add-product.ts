@@ -1,5 +1,5 @@
 import { PRODUCT_UNITS } from "@/types/commerce";
-import { COPY, productConfirmText, unitMenuText } from "@/lib/conversation/copy";
+import { COPY, productConfirmText, unitMenuReplies } from "@/lib/conversation/copy";
 import { withProduct } from "@/lib/conversation/context";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { parsePositiveNumber, parsePrice, parseUnit } from "@/lib/conversation/input";
@@ -54,7 +54,7 @@ export const handleAddProduct: ConversationHandler = async (turn, deps) => {
     return {
       state: "ADD_PRODUCT_UNIT",
       context: withProduct(turn.context, { quantity }),
-      replies: [textReply(unitMenuText())],
+      replies: unitMenuReplies(),
     };
   }
 
@@ -64,7 +64,7 @@ export const handleAddProduct: ConversationHandler = async (turn, deps) => {
       return {
         state: "ADD_PRODUCT_UNIT",
         context: turn.context,
-        replies: [textReply(COPY.invalidUnit)],
+        replies: [textReply(COPY.invalidUnit), ...unitMenuReplies()],
       };
     }
 
@@ -173,7 +173,7 @@ export function continueProductDraft(draft: ProductDraft): HandlerResult {
     return {
       state: "ADD_PRODUCT_UNIT",
       context: { product: draft },
-      replies: [textReply(unitMenuText())],
+      replies: unitMenuReplies(),
     };
   }
 

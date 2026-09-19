@@ -18,6 +18,28 @@ export function buttonReply(
   return { kind: "interactive", message };
 }
 
+export function menuButtonReplies(
+  items: Array<{ id: string; title: string }>,
+  extras: { header?: string; body?: string; footer?: string } = {},
+): EngineReply[] {
+  const buttons = items.slice(0, 10);
+  if (buttons.length === 0) {
+    return [];
+  }
+
+  const replies: EngineReply[] = [];
+  for (let index = 0; index < buttons.length; index += 3) {
+    const first = index === 0;
+    replies.push(
+      buttonReply(first ? (extras.body ?? " ") : " ", buttons.slice(index, index + 3), {
+        header: first ? extras.header : undefined,
+        footer: first ? extras.footer : undefined,
+      }),
+    );
+  }
+  return replies;
+}
+
 export function listReply(
   body: string,
   rows: WhatsAppListRow[],

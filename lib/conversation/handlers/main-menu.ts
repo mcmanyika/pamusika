@@ -1,4 +1,4 @@
-import { COPY, customerMenuReply, customerOrdersText, helpReply, mainMenuReply, vendorMenuReply } from "@/lib/conversation/copy";
+import { COPY, customerMenuReplies, customerOrdersText, helpReplies, mainMenuReply, vendorMenuReplies } from "@/lib/conversation/copy";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { textReply } from "@/lib/conversation/replies";
 import type { ConversationHandler } from "@/lib/conversation/handlers/types";
@@ -13,7 +13,7 @@ export const handleMainMenu: ConversationHandler = async (turn, deps) => {
     return {
       state: "SUPPORT",
       context: {},
-        replies: [helpReply()],
+        replies: helpReplies(),
     };
   }
 
@@ -21,7 +21,7 @@ export const handleMainMenu: ConversationHandler = async (turn, deps) => {
     return {
       state: "CUSTOMER_MENU",
       context: {},
-      replies: [customerMenuReply()],
+      replies: customerMenuReplies(),
     };
   }
 
@@ -30,7 +30,7 @@ export const handleMainMenu: ConversationHandler = async (turn, deps) => {
       return {
         state: "VENDOR_MENU",
         context: {},
-        replies: [vendorMenuReply()],
+        replies: vendorMenuReplies(),
       };
     }
     return {
