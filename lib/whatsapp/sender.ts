@@ -31,19 +31,38 @@ export class WhatsAppSender {
           continue;
         }
 
-        const result = await this.client.sendInteractiveMessage(input.to, reply.message);
-        await this.logs.logOutbound({
-          externalMessageId: result.id,
-          phoneNumber: input.phoneNumber,
-          messageType: "interactive",
-          messageText: reply.message.body,
-          payload: { to: input.to, type: "interactive" },
-        });
+        try {
+          const result = await this.client.sendInteractiveMessage(input.to, reply.message);
+          await this.logs.logOutbound({
+            externalMessageId: result.id,
+            phoneNumber: input.phoneNumber,
+            messageType: "interactive",
+            messageText: reply.message.body,
+            payload: { to: input.to, type: reply.message.list ? "list" : "button" },
+          });
+        } catch (error) {
+          logger.warn({
+            operation: "whatsapp_send",
+            result: "interactive_fallback",
+            error: isWhatsAppError(error) ? error.code : "unknown",
+          });
+          const result = await this.client.sendTextMessage(input.to, reply.message.body, {
+            replyToMessageId: input.replyToMessageId,
+          });
+          await this.logs.logOutbound({
+            externalMessageId: result.id,
+            phoneNumber: input.phoneNumber,
+            messageType: "text",
+            messageText: reply.message.body,
+            payload: { to: input.to, type: "text", fallback: true },
+          });
+        }
+        continue;
       } catch (error) {
         logger.error({
           operation: "whatsapp_send",
           result: "failed",
-          error: isWhatsAppError(error) ? error.code : "unknown",
+          error: isWhatsAppError(error) ? error.message : "unknown",
         });
         await this.logs.logOutbound({
           externalMessageId: null,

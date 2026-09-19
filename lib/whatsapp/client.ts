@@ -114,11 +114,15 @@ function extractMessageId(body: unknown): string {
   return id;
 }
 
+function clamp(value: string, max: number): string {
+  return [...value].slice(0, max).join("");
+}
+
 function interactivePayload(message: WhatsAppInteractiveMessage): Record<string, unknown> {
   const header = message.header
-    ? { header: { type: "text", text: message.header.slice(0, 60) } }
+    ? { header: { type: "text", text: clamp(message.header, 60) } }
     : {};
-  const footer = message.footer ? { footer: { text: message.footer.slice(0, 60) } } : {};
+  const footer = message.footer ? { footer: { text: clamp(message.footer, 60) } } : {};
 
   if (message.list) {
     return {
@@ -127,13 +131,13 @@ function interactivePayload(message: WhatsAppInteractiveMessage): Record<string,
       body: { text: message.body },
       ...footer,
       action: {
-        button: message.list.button.slice(0, 20),
+        button: clamp(message.list.button, 20),
         sections: message.list.sections.slice(0, 10).map((section) => ({
-          ...(section.title ? { title: section.title.slice(0, 24) } : {}),
+          title: clamp(section.title || "Menu", 24),
           rows: section.rows.slice(0, 10).map((row) => ({
-            id: row.id.slice(0, 200),
-            title: row.title.slice(0, 24),
-            ...(row.description ? { description: row.description.slice(0, 72) } : {}),
+            id: clamp(row.id, 200),
+            title: clamp(row.title, 24),
+            ...(row.description ? { description: clamp(row.description, 72) } : {}),
           })),
         })),
       },

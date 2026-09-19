@@ -20,6 +20,13 @@ describe("conversation engine", () => {
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
     ).toMatch(/You're in the main menu/i);
     expect(
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
+    ).toMatch(/1 —/);
+    expect(
+      result.replies[0]?.kind === "interactive" &&
+        result.replies[0].message.list?.sections[0],
+    ).toMatchObject({ title: "Menu" });
+    expect(
       result.replies[0]?.kind === "interactive" &&
         result.replies[0].message.list?.sections[0]?.rows,
     ).toHaveLength(4);

@@ -9,11 +9,15 @@ export function listReply(
   rows: WhatsAppListRow[],
   button = "See options",
 ): EngineReply {
+  const visible = rows
+    .slice(0, 10)
+    .map((row, index) => `${index + 1} — ${row.title}`)
+    .join("\n");
   const message: WhatsAppInteractiveMessage = {
-    body,
+    body: `${body}\n\n${visible}`,
     list: {
       button,
-      sections: [{ rows: rows.slice(0, 10) }],
+      sections: [{ title: "Menu", rows: rows.slice(0, 10) }],
     },
   };
   return { kind: "interactive", message };
