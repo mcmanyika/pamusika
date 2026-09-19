@@ -1,4 +1,4 @@
-import { COPY, customerMenuText, helpText, mainMenuText, vendorMenuText } from "@/lib/conversation/copy";
+import { COPY, customerMenuReply, helpReply, mainMenuReply, vendorMenuReply } from "@/lib/conversation/copy";
 import { textReply } from "@/lib/conversation/replies";
 import type {
   ConversationEngineDeps,
@@ -12,7 +12,7 @@ export function landingFor(userType: string): HandlerResult {
     return {
       state: "VENDOR_MENU",
       context: {},
-      replies: [textReply(vendorMenuText())],
+      replies: [vendorMenuReply()],
     };
   }
 
@@ -20,14 +20,14 @@ export function landingFor(userType: string): HandlerResult {
     return {
       state: "CUSTOMER_MENU",
       context: {},
-      replies: [textReply(customerMenuText())],
+      replies: [customerMenuReply()],
     };
   }
 
   return {
     state: "MAIN_MENU",
     context: {},
-    replies: [textReply(mainMenuText())],
+    replies: [mainMenuReply()],
   };
 }
 
@@ -35,7 +35,7 @@ export function showHelp(): HandlerResult {
   return {
     state: "SUPPORT",
     context: {},
-    replies: [textReply(helpText())],
+    replies: [helpReply()],
   };
 }
 

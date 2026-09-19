@@ -1,4 +1,4 @@
-import { COPY, LANGUAGES, categoryMenuText, languageMenuText, registrationConfirmText, vendorMenuText } from "@/lib/conversation/copy";
+import { COPY, LANGUAGES, categoryMenuText, languageMenuText, registrationConfirmText, vendorMenuReply } from "@/lib/conversation/copy";
 import { withRegistration } from "@/lib/conversation/context";
 import { continueProductDraft } from "@/lib/conversation/handlers/add-product";
 import { landingFor } from "@/lib/conversation/handlers/shared";
@@ -162,7 +162,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
       state: "VENDOR_MENU",
       context: {},
       identity,
-      replies: [textReply(`${COPY.registered}\n\n${vendorMenuText()}`)],
+      replies: [textReply(COPY.registered), vendorMenuReply()],
     };
   }
 

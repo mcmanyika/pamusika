@@ -2,9 +2,9 @@ import { parseProductNumbers } from "@/lib/services/product.service";
 import {
   COPY,
   browseCategoryMenuText,
-  customerMenuText,
+  customerMenuReply,
   customerOrdersText,
-  helpText,
+  helpReply,
   orderQuantityPrompt,
   orderSummaryText,
   searchResultsText,
@@ -54,7 +54,7 @@ export const handleBuyer: ConversationHandler = async (turn, deps) => {
     return {
       state: "CUSTOMER_MENU",
       context: turn.context,
-      replies: [textReply(`${COPY.orderPlaced}\n\n${customerMenuText()}`)],
+      replies: [textReply(COPY.orderPlaced), customerMenuReply()],
     };
   }
 
@@ -74,7 +74,7 @@ async function handleCustomerMenu(
     return {
       state: "SUPPORT",
       context: {},
-        replies: [textReply(helpText())],
+        replies: [helpReply()],
     };
   }
 
@@ -133,7 +133,7 @@ async function handleCustomerMenu(
   return {
     state: "CUSTOMER_MENU",
     context: {},
-    replies: [textReply(customerMenuText())],
+    replies: [customerMenuReply()],
   };
 }
 
@@ -279,7 +279,7 @@ async function handleOrderConfirm(
     return {
       state: "CUSTOMER_MENU",
       context: {},
-      replies: [textReply(customerMenuText())],
+      replies: [customerMenuReply()],
     };
   }
 

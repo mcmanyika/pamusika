@@ -1,9 +1,11 @@
 import { moneyString, parseDecimal } from "@/lib/commerce/money";
+import { listReply } from "@/lib/conversation/replies";
 import { PRODUCT_UNITS } from "@/types/commerce";
 import type { Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
 import type { ProductSearchHit } from "@/lib/services/product.service";
 import type { OrderDraft, ProductDraft, RegistrationDraft } from "@/types/conversation";
+import type { EngineReply, WhatsAppListRow } from "@/types/whatsapp";
 
 export const COPY = {
   unsupported:
@@ -58,51 +60,82 @@ export const LANGUAGES = [
 export function mainMenuText(): string {
   return `Welcome to PaySell 👋
 
-Buy and sell through WhatsApp.
+You're in the main menu.
+Here you can buy products, sell stock, and check your orders.
 
-What would you like to do?
-
-1 — Buy Something
-2 — Sell Something
-3 — My Orders
-4 — Help`;
+What would you like to do?`;
 }
 
 export function vendorMenuText(): string {
-  return `PaySell Business
+  return `Welcome to PaySell 👋
 
-What would you like to do?
+You're in the Vendor Menu.
+Here you can manage your products, view orders and grow your business.
 
-1 — Sell a Product
-2 — My Products
-3 — Customer Orders
-4 — My Sales
-5 — My Business
-6 — Help`;
+What would you like to do?`;
 }
 
 export function customerMenuText(): string {
-  return `PaySell Marketplace
+  return `Welcome to PaySell 👋
 
-What would you like to do?
+You're in the Marketplace.
+Here you can find products, place collection orders, and track them.
 
-1 — Find Products
-2 — Browse Categories
-3 — Vendors Near Me
-4 — My Orders
-5 — Help`;
+What would you like to do?`;
 }
 
 export function helpText(): string {
   return `PaySell Help
 
-Reply with a number from the menu, or MENU to go back.
-
 Buyers can search products and place collection orders.
 Vendors can list products and accept, ready, and complete orders.
 
-1 — Main Menu
-2 — Talk to Support`;
+What would you like to do?`;
+}
+
+const MAIN_MENU_ROWS: WhatsAppListRow[] = [
+  { id: "1", title: "🛒 Buy Something", description: "Search and order products near you" },
+  { id: "2", title: "➕ Sell Something", description: "Register and list products for sale" },
+  { id: "3", title: "📦 My Orders", description: "Track your collection orders" },
+  { id: "4", title: "❓ Help / Support", description: "Get help or speak to our team" },
+];
+
+const VENDOR_MENU_ROWS: WhatsAppListRow[] = [
+  { id: "1", title: "➕ Sell a Product", description: "List a new product for sale" },
+  { id: "2", title: "📦 My Products", description: "View, update or remove your products" },
+  { id: "3", title: "🛒 Customer Orders", description: "View and manage your orders" },
+  { id: "4", title: "📊 My Sales", description: "See your sales summary" },
+  { id: "5", title: "🏪 My Business", description: "View or update your business details" },
+  { id: "6", title: "❓ Help / Support", description: "Get help or speak to our team" },
+];
+
+const CUSTOMER_MENU_ROWS: WhatsAppListRow[] = [
+  { id: "1", title: "🔎 Find Products", description: "Search for something to buy" },
+  { id: "2", title: "📂 Browse Categories", description: "Shop by product category" },
+  { id: "3", title: "📍 Vendors Near Me", description: "Find sellers in your area" },
+  { id: "4", title: "📦 My Orders", description: "View and track your orders" },
+  { id: "5", title: "❓ Help / Support", description: "Get help or speak to our team" },
+];
+
+const HELP_MENU_ROWS: WhatsAppListRow[] = [
+  { id: "1", title: "🏠 Main Menu", description: "Go back to the main menu" },
+  { id: "2", title: "👤 Talk to Support", description: "Ask a person to follow up" },
+];
+
+export function mainMenuReply(): EngineReply {
+  return listReply(mainMenuText(), MAIN_MENU_ROWS);
+}
+
+export function vendorMenuReply(): EngineReply {
+  return listReply(vendorMenuText(), VENDOR_MENU_ROWS);
+}
+
+export function customerMenuReply(): EngineReply {
+  return listReply(customerMenuText(), CUSTOMER_MENU_ROWS);
+}
+
+export function helpReply(): EngineReply {
+  return listReply(helpText(), HELP_MENU_ROWS);
 }
 
 export function categoryMenuText(categories: Array<{ name: string }>): string {

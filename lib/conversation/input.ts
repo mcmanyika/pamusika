@@ -20,7 +20,7 @@ export function normalizeInput(message: WhatsAppInboundMessage): NormalizedInput
   const raw = (message.text ?? message.choiceId ?? "").trim();
   const normalized = raw.toLowerCase();
   const choiceId = message.choiceId?.trim().toLowerCase() || null;
-  const choice = parseMenuChoice(normalized);
+  const choice = parseMenuChoice(normalized) ?? (choiceId ? parseMenuChoice(choiceId) : null);
 
   return {
     raw,

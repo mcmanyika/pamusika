@@ -114,6 +114,46 @@ function extractMessageId(body: unknown): string {
   return id;
 }
 
+function interactivePayload(message: WhatsAppInteractiveMessage): Record<string, unknown> {
+  const header = message.header
+    ? { header: { type: "text", text: message.header.slice(0, 60) } }
+    : {};
+  const footer = message.footer ? { footer: { text: message.footer.slice(0, 60) } } : {};
+
+  if (message.list) {
+    return {
+      type: "list",
+      ...header,
+      body: { text: message.body },
+      ...footer,
+      action: {
+        button: message.list.button.slice(0, 20),
+        sections: message.list.sections.slice(0, 10).map((section) => ({
+          ...(section.title ? { title: section.title.slice(0, 24) } : {}),
+          rows: section.rows.slice(0, 10).map((row) => ({
+            id: row.id.slice(0, 200),
+            title: row.title.slice(0, 24),
+            ...(row.description ? { description: row.description.slice(0, 72) } : {}),
+          })),
+        })),
+      },
+    };
+  }
+
+  return {
+    type: "button",
+    ...header,
+    body: { text: message.body },
+    ...footer,
+    action: {
+      buttons: (message.buttons ?? []).slice(0, 3).map((button) => ({
+        type: "reply",
+        reply: { id: button.id, title: button.title.slice(0, 20) },
+      })),
+    },
+  };
+}
+
 export function createWhatsAppClient(): WhatsAppClient {
   const config = getWhatsAppConfig();
 
@@ -160,17 +200,7 @@ export function createWhatsAppClient(): WhatsAppClient {
         recipient_type: "individual",
         to,
         type: "interactive",
-        interactive: {
-          type: "button",
-          body: { text: message.body },
-          ...(message.footer ? { footer: { text: message.footer } } : {}),
-          action: {
-            buttons: message.buttons.slice(0, 3).map((button) => ({
-              type: "reply",
-              reply: { id: button.id, title: button.title.slice(0, 20) },
-            })),
-          },
-        },
+        interactive: interactivePayload(message),
       });
     },
 

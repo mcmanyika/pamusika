@@ -1,8 +1,8 @@
 import {
   COPY,
-  helpText,
+  helpReply,
   productListText,
-  vendorMenuText,
+  vendorMenuReply,
   vendorProfileText,
 } from "@/lib/conversation/copy";
 import { landingFor } from "@/lib/conversation/handlers/shared";
@@ -30,7 +30,7 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
     return {
       state: "SUPPORT",
       context: {},
-        replies: [textReply(helpText())],
+        replies: [helpReply()],
     };
   }
 
@@ -94,6 +94,6 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
   return {
     state: "VENDOR_MENU",
     context: {},
-    replies: [textReply(vendorMenuText())],
+    replies: [vendorMenuReply()],
   };
 };

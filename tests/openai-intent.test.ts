@@ -154,6 +154,7 @@ describe("intent routing", () => {
       ["hello", "NEW", {}],
       ["help", "CUSTOMER_MENU", {}],
       ["menu", "VENDOR_MENU", {}],
+      ["Add / Sell a Product", "VENDOR_MENU", { type: "interactive", choiceId: "1" }],
     ];
 
     for (const [text, state, extras] of cases) {
@@ -242,7 +243,9 @@ describe("intent routing", () => {
     const result = await say(engine, "maybe tomatoes or something");
 
     expect(result.session.current_state).toBe("VENDOR_MENU");
-    expect(result.replies[0]?.kind === "text" && result.replies[0].text).toMatch(/PaySell Business/);
+    expect(
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
+    ).toMatch(/Vendor Menu/);
   });
 
   it("searches instead of creating an order from CREATE_ORDER", async () => {

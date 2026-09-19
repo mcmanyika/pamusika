@@ -226,7 +226,7 @@ describe("webhook processing", () => {
   it("replies with the main menu for supported text", async () => {
     const { engine, logs, sender, sent } = createProcessor();
     await processInboundPayload(textPayload("wamid.hello"), { engine, logs, sender });
-    expect(sent[0]?.body).toMatch(/Buy and sell through WhatsApp/i);
+    expect(sent[0]?.body).toMatch(/You're in the main menu/i);
     expect(sent[0]?.to).toBe("263771234567");
   });
 

@@ -1,7 +1,22 @@
-import type { EngineReply, WhatsAppInteractiveMessage } from "@/types/whatsapp";
+import type { EngineReply, WhatsAppInteractiveMessage, WhatsAppListRow } from "@/types/whatsapp";
 
 export function textReply(text: string): EngineReply {
   return { kind: "text", text };
+}
+
+export function listReply(
+  body: string,
+  rows: WhatsAppListRow[],
+  button = "See options",
+): EngineReply {
+  const message: WhatsAppInteractiveMessage = {
+    body,
+    list: {
+      button,
+      sections: [{ rows: rows.slice(0, 10) }],
+    },
+  };
+  return { kind: "interactive", message };
 }
 
 export function confirmReply(body: string): EngineReply {

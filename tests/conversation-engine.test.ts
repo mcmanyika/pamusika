@@ -15,10 +15,14 @@ describe("conversation engine", () => {
     const result = await say(engine, "hello");
 
     expect(result.session.current_state).toBe("MAIN_MENU");
-    expect(result.replies[0]).toMatchObject({ kind: "text" });
-    expect(result.replies[0]?.kind === "text" && result.replies[0].text).toMatch(
-      /Buy and sell through WhatsApp/i,
-    );
+    expect(result.replies[0]).toMatchObject({ kind: "interactive" });
+    expect(
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
+    ).toMatch(/You're in the main menu/i);
+    expect(
+      result.replies[0]?.kind === "interactive" &&
+        result.replies[0].message.list?.sections[0]?.rows,
+    ).toHaveLength(4);
   });
 
   it("registers a vendor through the menu and activates them on confirm", async () => {
@@ -39,9 +43,11 @@ describe("conversation engine", () => {
     expect(vendors[0]?.area).toBe("Mbare");
     expect(result.identity.userType).toBe("VENDOR");
     expect(result.session.current_state).toBe("VENDOR_MENU");
-    expect(result.replies.some((reply) => reply.kind === "text" && /PaySell Business/.test(reply.text))).toBe(
-      true,
-    );
+    expect(
+      result.replies.some(
+        (reply) => reply.kind === "interactive" && /Vendor Menu/.test(reply.message.body),
+      ),
+    ).toBe(true);
   });
 
   it("does not create a vendor when the user chooses CHANGE", async () => {
@@ -139,14 +145,24 @@ describe("conversation engine", () => {
     );
   });
 
+  it("opens sell from a WhatsApp list tap", async () => {
+    const { engine } = createConversationHarness();
+    await say(engine, "hi");
+    const result = await say(engine, "Sell Something", {
+      type: "interactive",
+      choiceId: "2",
+    });
+    expect(result.session.current_state).toBe("VENDOR_REGISTRATION_NAME");
+  });
+
   it("opens the buyer menu from Buy Something", async () => {
     const { engine } = createConversationHarness();
     await say(engine, "hi");
     const result = await say(engine, "1");
     expect(result.session.current_state).toBe("CUSTOMER_MENU");
-    expect(result.replies[0]?.kind === "text" && result.replies[0].text).toMatch(
-      /PaySell Marketplace/,
-    );
+    expect(
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
+    ).toMatch(/You're in the Marketplace/i);
   });
 
   it("returns registered vendors to the vendor menu", async () => {
@@ -161,7 +177,9 @@ describe("conversation engine", () => {
 
     const result = await say(engine, "hello");
     expect(result.session.current_state).toBe("VENDOR_MENU");
-    expect(result.replies[0]?.kind === "text" && result.replies[0].text).toMatch(/PaySell Business/);
+    expect(
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
+    ).toMatch(/Vendor Menu/);
   });
 
   it("lets a customer search, order, and a vendor complete the sale", async () => {
@@ -200,7 +218,7 @@ describe("conversation engine", () => {
 
     const acceptButton =
       placed.notifications[0]?.replies[0]?.kind === "interactive"
-        ? placed.notifications[0].replies[0].message.buttons[0]
+        ? placed.notifications[0].replies[0].message.buttons?.[0]
         : null;
     expect(acceptButton?.id).toMatch(/^accept:/);
 
@@ -213,7 +231,7 @@ describe("conversation engine", () => {
 
     const readyButton =
       accepted.replies[0]?.kind === "interactive"
-        ? accepted.replies[0].message.buttons[0]
+        ? accepted.replies[0].message.buttons?.[0]
         : null;
     const readied = await say(engine, "READY", {
       ...vendor,
@@ -223,7 +241,7 @@ describe("conversation engine", () => {
 
     const completeButton =
       readied.replies[0]?.kind === "interactive"
-        ? readied.replies[0].message.buttons[0]
+        ? readied.replies[0].message.buttons?.[0]
         : null;
     await say(engine, "COMPLETE", { ...vendor, choiceId: completeButton?.id });
 

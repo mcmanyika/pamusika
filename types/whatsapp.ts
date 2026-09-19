@@ -16,10 +16,26 @@ export type WhatsAppInteractiveButton = {
   title: string;
 };
 
+export type WhatsAppListRow = {
+  id: string;
+  title: string;
+  description?: string;
+};
+
+export type WhatsAppListSection = {
+  title?: string;
+  rows: WhatsAppListRow[];
+};
+
 export type WhatsAppInteractiveMessage = {
   body: string;
+  header?: string;
   footer?: string;
-  buttons: WhatsAppInteractiveButton[];
+  buttons?: WhatsAppInteractiveButton[];
+  list?: {
+    button: string;
+    sections: WhatsAppListSection[];
+  };
 };
 
 export type WhatsAppTemplateMessage = {
