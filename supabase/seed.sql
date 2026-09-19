@@ -1,0 +1,9 @@
+-- Development seed data.
+-- Categories are created by the initial migration.
+-- Vendor, customer, product, and order samples will be added in Phase 2/8.
+--
+-- After creating the first Auth user in the Supabase dashboard, promote it:
+--
+--   UPDATE public.profiles
+--   SET role = 'SUPER_ADMIN'
+--   WHERE email = 'your-admin@example.com';
