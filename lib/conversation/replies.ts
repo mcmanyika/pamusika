@@ -7,9 +7,12 @@ export function textReply(text: string): EngineReply {
 export function buttonReply(
   body: string,
   buttons: Array<{ id: string; title: string }>,
+  extras: { header?: string; footer?: string } = {},
 ): EngineReply {
   const message: WhatsAppInteractiveMessage = {
     body,
+    header: extras.header,
+    footer: extras.footer,
     buttons: buttons.slice(0, 3),
   };
   return { kind: "interactive", message };
@@ -18,7 +21,7 @@ export function buttonReply(
 export function listReply(
   body: string,
   rows: WhatsAppListRow[],
-  button = "See options",
+  button = "Open menu",
 ): EngineReply {
   const visible = rows
     .slice(0, 10)

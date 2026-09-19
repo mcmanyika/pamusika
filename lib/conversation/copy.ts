@@ -58,29 +58,21 @@ export const LANGUAGES = [
 ] as const;
 
 export function mainMenuText(): string {
-  return `Welcome to PaySell 👋
+  return `Commerce through conversation.
 
-Buy and sell through WhatsApp.
-
-Tap Buyer Menu to shop, or Vendor Menu to sell.`;
+Shop as a buyer, or sell as a vendor.`;
 }
 
 export function vendorMenuText(): string {
-  return `Welcome to PaySell 👋
+  return `Vendor menu
 
-You're in the Vendor Menu.
-Here you can manage your products, view orders and grow your business.
-
-What would you like to do?`;
+Manage products, orders, and your business.`;
 }
 
 export function customerMenuText(): string {
-  return `Welcome to PaySell 👋
+  return `Buyer menu
 
-You're in the Marketplace.
-Here you can find products, place collection orders, and track them.
-
-What would you like to do?`;
+Find products and track collection orders.`;
 }
 
 export function helpText(): string {
@@ -115,10 +107,17 @@ const HELP_MENU_ROWS: WhatsAppListRow[] = [
 ];
 
 export function mainMenuReply(): EngineReply {
-  return buttonReply(mainMenuText(), [
-    { id: "buyer", title: "Buyer Menu" },
-    { id: "vendor", title: "Vendor Menu" },
-  ]);
+  return buttonReply(
+    mainMenuText(),
+    [
+      { id: "buyer", title: "Buyer" },
+      { id: "vendor", title: "Vendor" },
+    ],
+    {
+      header: "PaySell",
+      footer: "Tap a button to continue",
+    },
+  );
 }
 
 export function vendorMenuReply(): EngineReply {

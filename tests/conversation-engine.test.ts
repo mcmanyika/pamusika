@@ -18,13 +18,20 @@ describe("conversation engine", () => {
     expect(result.replies[0]).toMatchObject({ kind: "interactive" });
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/Buy and sell through WhatsApp/i);
+    ).toMatch(/Commerce through conversation/i);
     expect(
-      result.replies[0]?.kind === "interactive" && result.replies[0].message.buttons,
-    ).toEqual([
-      { id: "buyer", title: "Buyer Menu" },
-      { id: "vendor", title: "Vendor Menu" },
-    ]);
+      result.replies[0]?.kind === "interactive" && result.replies[0].message,
+    ).toMatchObject({
+      header: "PaySell",
+      footer: "Tap a button to continue",
+      buttons: [
+        { id: "buyer", title: "Buyer" },
+        { id: "vendor", title: "Vendor" },
+      ],
+    });
+    expect(
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.list,
+    ).toBeUndefined();
   });
 
   it("registers a vendor through the menu and activates them on confirm", async () => {
@@ -47,7 +54,7 @@ describe("conversation engine", () => {
     expect(result.session.current_state).toBe("VENDOR_MENU");
     expect(
       result.replies.some(
-        (reply) => reply.kind === "interactive" && /Vendor Menu/.test(reply.message.body),
+        (reply) => reply.kind === "interactive" && /vendor menu/i.test(reply.message.body),
       ),
     ).toBe(true);
   });
@@ -150,7 +157,7 @@ describe("conversation engine", () => {
   it("opens vendor registration from the Vendor Menu button", async () => {
     const { engine } = createConversationHarness();
     await say(engine, "hi");
-    const result = await say(engine, "Vendor Menu", {
+    const result = await say(engine, "Vendor", {
       type: "interactive",
       choiceId: "vendor",
     });
@@ -160,17 +167,17 @@ describe("conversation engine", () => {
   it("opens the buyer menu from the Buyer Menu button", async () => {
     const { engine } = createConversationHarness();
     await say(engine, "hi");
-    const result = await say(engine, "Buyer Menu", {
+    const result = await say(engine, "Buyer", {
       type: "interactive",
       choiceId: "buyer",
     });
     expect(result.session.current_state).toBe("CUSTOMER_MENU");
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/You're in the Marketplace/i);
+    ).toMatch(/Buyer menu/i);
   });
 
-  it("returns registered vendors to the vendor menu", async () => {
+  it("returns registered vendors to the two-button main menu", async () => {
     const { engine } = createConversationHarness();
     await say(engine, "2");
     await say(engine, "Tariro");
@@ -180,11 +187,21 @@ describe("conversation engine", () => {
     await say(engine, "1");
     await say(engine, "YES", { choiceId: "yes" });
 
-    const result = await say(engine, "hello");
-    expect(result.session.current_state).toBe("VENDOR_MENU");
+    const home = await say(engine, "hello");
+    expect(home.session.current_state).toBe("MAIN_MENU");
+    expect(home.replies[0]?.kind === "interactive" && home.replies[0].message.buttons).toEqual([
+      { id: "buyer", title: "Buyer" },
+      { id: "vendor", title: "Vendor" },
+    ]);
+
+    const vendor = await say(engine, "Vendor", {
+      type: "interactive",
+      choiceId: "vendor",
+    });
+    expect(vendor.session.current_state).toBe("VENDOR_MENU");
     expect(
-      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/Vendor Menu/);
+      vendor.replies[0]?.kind === "interactive" && vendor.replies[0].message.body,
+    ).toMatch(/vendor menu/i);
   });
 
   it("lets a customer search, order, and a vendor complete the sale", async () => {

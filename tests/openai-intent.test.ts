@@ -246,7 +246,7 @@ describe("intent routing", () => {
     expect(result.session.current_state).toBe("VENDOR_MENU");
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/Vendor Menu/);
+    ).toMatch(/vendor menu/i);
   });
 
   it("searches instead of creating an order from CREATE_ORDER", async () => {

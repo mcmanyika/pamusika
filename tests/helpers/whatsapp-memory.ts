@@ -70,7 +70,11 @@ export function createMemoryMessageLogStore(seed: MessageLog[] = []): MessageLog
 }
 
 export function createMockWhatsAppClient() {
-  const sent: Array<{ to: string; body: string }> = [];
+  const sent: Array<{
+    to: string;
+    body: string;
+    buttons?: Array<{ id: string; title: string }>;
+  }> = [];
   const read: string[] = [];
   let sequence = 1;
 
@@ -80,7 +84,7 @@ export function createMockWhatsAppClient() {
       return { id: `wamid.out.${sequence++}` } satisfies WhatsAppSendResult;
     },
     async sendInteractiveMessage(to, message) {
-      sent.push({ to, body: message.body });
+      sent.push({ to, body: message.body, buttons: message.buttons });
       return { id: `wamid.out.${sequence++}` };
     },
     async sendTemplateMessage(to, template) {

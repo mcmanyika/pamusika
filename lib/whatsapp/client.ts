@@ -118,7 +118,7 @@ function clamp(value: string, max: number): string {
   return [...value].slice(0, max).join("");
 }
 
-function interactivePayload(message: WhatsAppInteractiveMessage): Record<string, unknown> {
+export function interactivePayload(message: WhatsAppInteractiveMessage): Record<string, unknown> {
   const header = message.header
     ? { header: { type: "text", text: clamp(message.header, 60) } }
     : {};
@@ -152,7 +152,7 @@ function interactivePayload(message: WhatsAppInteractiveMessage): Record<string,
     action: {
       buttons: (message.buttons ?? []).slice(0, 3).map((button) => ({
         type: "reply",
-        reply: { id: button.id, title: button.title.slice(0, 20) },
+        reply: { id: clamp(button.id, 256), title: clamp(button.title, 20) },
       })),
     },
   };

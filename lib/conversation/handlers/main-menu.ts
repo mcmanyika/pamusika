@@ -1,17 +1,12 @@
-import { COPY, customerMenuReply, customerOrdersText, helpReply, mainMenuReply } from "@/lib/conversation/copy";
+import { COPY, customerMenuReply, customerOrdersText, helpReply, mainMenuReply, vendorMenuReply } from "@/lib/conversation/copy";
 import { landingFor } from "@/lib/conversation/handlers/shared";
-import { handleVendorMenu } from "@/lib/conversation/handlers/vendor-menu";
 import { textReply } from "@/lib/conversation/replies";
 import type { ConversationHandler } from "@/lib/conversation/handlers/types";
 
 export const handleMainMenu: ConversationHandler = async (turn, deps) => {
-  if (turn.identity.userType === "VENDOR") {
-    return handleVendorMenu(turn, deps);
-  }
-
   const firstVisit = turn.session.current_state === "NEW";
   if (firstVisit && !turn.input.choice && !turn.input.help) {
-    return landingFor("UNKNOWN");
+    return landingFor();
   }
 
   if (turn.input.help) {
@@ -31,6 +26,13 @@ export const handleMainMenu: ConversationHandler = async (turn, deps) => {
   }
 
   if (turn.input.choice === 2) {
+    if (turn.identity.userType === "VENDOR") {
+      return {
+        state: "VENDOR_MENU",
+        context: {},
+        replies: [vendorMenuReply()],
+      };
+    }
     return {
       state: "VENDOR_REGISTRATION_NAME",
       context: {},

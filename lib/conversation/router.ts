@@ -35,17 +35,9 @@ const PRODUCT_STATES = new Set<ConversationState>([
   "ADD_PRODUCT_CONFIRM",
 ]);
 
-export function resolveState(raw: string, userType: string): ConversationState {
-  if (!isConversationState(raw)) {
-    return userType === "VENDOR" ? "VENDOR_MENU" : "NEW";
-  }
-
-  if (userType === "VENDOR" && (raw === "NEW" || raw === "MAIN_MENU" || raw === "CUSTOMER_MENU")) {
-    return "VENDOR_MENU";
-  }
-
-  if (userType === "CUSTOMER" && (raw === "NEW" || raw === "MAIN_MENU")) {
-    return "CUSTOMER_MENU";
+export function resolveState(raw: string, _userType?: string): ConversationState {
+  if (!isConversationState(raw) || raw === "NEW") {
+    return "MAIN_MENU";
   }
 
   return raw;

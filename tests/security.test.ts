@@ -7,6 +7,8 @@ import { clientIp, rateLimit, resetRateLimitForTests } from "@/lib/utils/rate-li
 import { loginSchema } from "@/lib/validation/auth";
 import { parseUuid } from "@/lib/validation/ids";
 import { webhookBodyTooLarge, WHATSAPP_WEBHOOK_MAX_BODY_BYTES } from "@/lib/whatsapp/config";
+import { interactivePayload } from "@/lib/whatsapp/client";
+import { mainMenuReply } from "@/lib/conversation/copy";
 
 describe("unauthorized admin access", () => {
   it("rejects missing users and non-staff profiles", () => {
@@ -99,5 +101,24 @@ describe("webhook body cap", () => {
     expect(webhookBodyTooLarge(String(WHATSAPP_WEBHOOK_MAX_BODY_BYTES + 1), 0)).toBe(true);
     expect(webhookBodyTooLarge(null, WHATSAPP_WEBHOOK_MAX_BODY_BYTES + 1)).toBe(true);
     expect(webhookBodyTooLarge("128", 128)).toBe(false);
+  });
+});
+
+describe("main menu buttons", () => {
+  it("sends Meta reply buttons, not a list", () => {
+    const reply = mainMenuReply();
+    expect(reply.kind).toBe("interactive");
+    if (reply.kind !== "interactive") {
+      return;
+    }
+    const payload = interactivePayload(reply.message);
+    expect(payload.type).toBe("button");
+    expect(payload.header).toEqual({ type: "text", text: "PaySell" });
+    expect(payload.action).toEqual({
+      buttons: [
+        { type: "reply", reply: { id: "buyer", title: "Buyer" } },
+        { type: "reply", reply: { id: "vendor", title: "Vendor" } },
+      ],
+    });
   });
 });

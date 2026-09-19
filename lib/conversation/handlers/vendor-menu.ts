@@ -20,10 +20,8 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
     return picked;
   }
 
-  const firstVisit =
-    turn.session.current_state === "NEW" || turn.session.current_state === "MAIN_MENU";
-  if (firstVisit && !turn.input.choice && !turn.input.help) {
-    return landingFor("VENDOR");
+  if (turn.input.greeting || turn.input.menu) {
+    return landingFor();
   }
 
   if (turn.input.help || turn.input.choice === 6) {
@@ -55,7 +53,7 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
 
   if (turn.input.choice === 2) {
     if (!turn.identity.userId) {
-      return landingFor("VENDOR");
+      return landingFor();
     }
     const products = await deps.products.listByVendor(turn.identity.userId);
     return {
@@ -78,17 +76,13 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
       ? await deps.vendors.getById(turn.identity.userId)
       : null;
     if (!vendor) {
-      return landingFor("UNKNOWN");
+      return landingFor();
     }
     return {
       state: "VENDOR_MENU",
       context: {},
       replies: [textReply(vendorProfileText(vendor))],
     };
-  }
-
-  if (turn.input.greeting || turn.input.menu) {
-    return landingFor("VENDOR");
   }
 
   return {
