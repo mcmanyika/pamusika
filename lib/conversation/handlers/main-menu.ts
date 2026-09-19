@@ -14,7 +14,7 @@ export const handleMainMenu: ConversationHandler = async (turn, deps) => {
     return landingFor("UNKNOWN");
   }
 
-  if (turn.input.help || turn.input.choice === 4) {
+  if (turn.input.help || turn.input.choice === 5) {
     return {
       state: "SUPPORT",
       context: {},
@@ -30,7 +30,7 @@ export const handleMainMenu: ConversationHandler = async (turn, deps) => {
     };
   }
 
-  if (turn.input.choice === 2) {
+  if (turn.input.choice === 2 || turn.input.choice === 4) {
     return {
       state: "VENDOR_REGISTRATION_NAME",
       context: {},

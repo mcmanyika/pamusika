@@ -29,7 +29,13 @@ describe("conversation engine", () => {
     expect(
       result.replies[0]?.kind === "interactive" &&
         result.replies[0].message.list?.sections[0]?.rows,
-    ).toHaveLength(4);
+    ).toHaveLength(5);
+    expect(
+      result.replies[0]?.kind === "interactive" &&
+        result.replies[0].message.list?.sections[0]?.rows?.some((row) =>
+          /My Business/.test(row.title),
+        ),
+    ).toBe(true);
   });
 
   it("registers a vendor through the menu and activates them on confirm", async () => {
@@ -158,6 +164,16 @@ describe("conversation engine", () => {
     const result = await say(engine, "Sell Something", {
       type: "interactive",
       choiceId: "2",
+    });
+    expect(result.session.current_state).toBe("VENDOR_REGISTRATION_NAME");
+  });
+
+  it("opens vendor registration from My Business", async () => {
+    const { engine } = createConversationHarness();
+    await say(engine, "hi");
+    const result = await say(engine, "My Business", {
+      type: "interactive",
+      choiceId: "4",
     });
     expect(result.session.current_state).toBe("VENDOR_REGISTRATION_NAME");
   });

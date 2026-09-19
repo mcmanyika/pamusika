@@ -97,7 +97,8 @@ const MAIN_MENU_ROWS: WhatsAppListRow[] = [
   { id: "1", title: "🛒 Buy Something", description: "Search and order products near you" },
   { id: "2", title: "➕ Sell Something", description: "Register and list products for sale" },
   { id: "3", title: "📦 My Orders", description: "Track your collection orders" },
-  { id: "4", title: "❓ Help / Support", description: "Get help or speak to our team" },
+  { id: "4", title: "🏪 My Business", description: "Register or open your vendor menu" },
+  { id: "5", title: "❓ Help / Support", description: "Get help or speak to our team" },
 ];
 
 const VENDOR_MENU_ROWS: WhatsAppListRow[] = [
@@ -114,7 +115,8 @@ const CUSTOMER_MENU_ROWS: WhatsAppListRow[] = [
   { id: "2", title: "📂 Browse Categories", description: "Shop by product category" },
   { id: "3", title: "📍 Vendors Near Me", description: "Find sellers in your area" },
   { id: "4", title: "📦 My Orders", description: "View and track your orders" },
-  { id: "5", title: "❓ Help / Support", description: "Get help or speak to our team" },
+  { id: "5", title: "🏪 My Business", description: "Register or open your vendor menu" },
+  { id: "6", title: "❓ Help / Support", description: "Get help or speak to our team" },
 ];
 
 const HELP_MENU_ROWS: WhatsAppListRow[] = [
