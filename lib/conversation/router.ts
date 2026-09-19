@@ -1,0 +1,80 @@
+import { handleAddProduct } from "@/lib/conversation/handlers/add-product";
+import { handleBuyer } from "@/lib/conversation/handlers/buyer";
+import { handleMainMenu } from "@/lib/conversation/handlers/main-menu";
+import { handleSupport } from "@/lib/conversation/handlers/shared";
+import { handleVendorMenu } from "@/lib/conversation/handlers/vendor-menu";
+import { handleVendorRegistration } from "@/lib/conversation/handlers/vendor-registration";
+import type { ConversationHandler } from "@/lib/conversation/handlers/types";
+import { isConversationState, type ConversationState } from "@/types/conversation";
+
+const REGISTRATION_STATES = new Set<ConversationState>([
+  "VENDOR_REGISTRATION_NAME",
+  "VENDOR_REGISTRATION_BUSINESS",
+  "VENDOR_REGISTRATION_CATEGORY",
+  "VENDOR_REGISTRATION_LOCATION",
+  "VENDOR_REGISTRATION_LANGUAGE",
+  "VENDOR_REGISTRATION_CONFIRM",
+]);
+
+const BUYER_STATES = new Set<ConversationState>([
+  "CUSTOMER_MENU",
+  "SEARCH_PRODUCT_QUERY",
+  "SEARCH_LOCATION",
+  "SEARCH_RESULTS",
+  "ORDER_QUANTITY",
+  "ORDER_CONFIRM",
+  "ORDER_WAITING_VENDOR",
+]);
+
+const PRODUCT_STATES = new Set<ConversationState>([
+  "ADD_PRODUCT_NAME",
+  "ADD_PRODUCT_QUANTITY",
+  "ADD_PRODUCT_UNIT",
+  "ADD_PRODUCT_PRICE",
+  "ADD_PRODUCT_IMAGE",
+  "ADD_PRODUCT_CONFIRM",
+]);
+
+export function resolveState(raw: string, userType: string): ConversationState {
+  if (!isConversationState(raw)) {
+    return userType === "VENDOR" ? "VENDOR_MENU" : "NEW";
+  }
+
+  if (userType === "VENDOR" && (raw === "NEW" || raw === "MAIN_MENU" || raw === "CUSTOMER_MENU")) {
+    return "VENDOR_MENU";
+  }
+
+  if (userType === "CUSTOMER" && (raw === "NEW" || raw === "MAIN_MENU")) {
+    return "CUSTOMER_MENU";
+  }
+
+  return raw;
+}
+
+export function getHandler(state: ConversationState): ConversationHandler {
+  if (state === "NEW" || state === "MAIN_MENU") {
+    return handleMainMenu;
+  }
+
+  if (REGISTRATION_STATES.has(state)) {
+    return handleVendorRegistration;
+  }
+
+  if (state === "VENDOR_MENU") {
+    return handleVendorMenu;
+  }
+
+  if (PRODUCT_STATES.has(state)) {
+    return handleAddProduct;
+  }
+
+  if (BUYER_STATES.has(state)) {
+    return handleBuyer;
+  }
+
+  if (state === "SUPPORT") {
+    return handleSupport;
+  }
+
+  return handleMainMenu;
+}

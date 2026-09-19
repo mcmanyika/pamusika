@@ -29,3 +29,7 @@ export function normalizePhoneNumber(input: string): string {
 
   return `+${digits}`;
 }
+
+export function toWhatsAppId(phone: string): string {
+  return phone.replace(/\D/g, "");
+}

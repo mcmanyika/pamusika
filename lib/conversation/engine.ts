@@ -1,65 +1,151 @@
-import type { ConversationService } from "@/lib/services/conversation.service";
-import type { CustomerService } from "@/lib/services/customer.service";
-import type { VendorService } from "@/lib/services/vendor.service";
+import { isCommerceError } from "@/lib/commerce/errors";
+import { parseSessionContext, toSessionJson } from "@/lib/conversation/context";
+import { COPY } from "@/lib/conversation/copy";
+import { landingFor, showHelp } from "@/lib/conversation/handlers/shared";
+import { normalizeInput, parseOrderAction } from "@/lib/conversation/input";
+import { applyInterpretedIntent, shouldInterpretIntent } from "@/lib/conversation/intent";
+import { getHandler, resolveState } from "@/lib/conversation/router";
+import { handleVendorOrderAction } from "@/lib/conversation/handlers/vendor-orders";
+import { textReply } from "@/lib/conversation/replies";
+import type {
+  ConversationEngineDeps,
+  ConversationIdentity,
+  ConversationTurn,
+  EngineNotification,
+  HandlerResult,
+} from "@/lib/conversation/handlers/types";
 import type { ConversationSession } from "@/types/database";
-import type { UserType } from "@/types/commerce";
 import type { EngineReply, WhatsAppInboundMessage } from "@/types/whatsapp";
 
-export type ConversationIdentity = {
-  userType: UserType;
-  userId: string | null;
-};
+export type { ConversationIdentity, ConversationEngineDeps } from "@/lib/conversation/handlers/types";
 
 export type ConversationEngineResult = {
   session: ConversationSession;
   identity: ConversationIdentity;
   replies: EngineReply[];
+  notifications: EngineNotification[];
 };
 
-const PHASE_3_TEXT = `Welcome to PaySell 👋
-
-We've received your message. Buying and selling through WhatsApp is coming online next.`;
-
-const UNSUPPORTED_TEXT =
-  "I can only read text messages right now. Please send your request as text.";
-
 export class ConversationEngine {
-  constructor(
-    private readonly conversations: ConversationService,
-    private readonly vendors: VendorService,
-    private readonly customers: CustomerService,
-  ) {}
+  constructor(private readonly deps: ConversationEngineDeps) {}
 
   async handle(message: WhatsAppInboundMessage): Promise<ConversationEngineResult> {
-    const identity = await this.identify(message.phoneNumber);
-    const session = await this.conversations.getOrCreateActive({
+    let identity = await this.identify(message.phoneNumber);
+    let session = await this.deps.conversations.getOrCreateActive({
       phoneNumber: message.phoneNumber,
       userType: identity.userType,
       userId: identity.userId,
     });
 
-    if (!message.supported) {
+    const state = resolveState(session.current_state, identity.userType);
+    const allowImage = state === "ADD_PRODUCT_IMAGE" && message.type === "image";
+    if (!message.supported && !allowImage) {
       return {
         session,
         identity,
-        replies: [{ kind: "text", text: UNSUPPORTED_TEXT }],
+        replies: [textReply(COPY.unsupported)],
+        notifications: [],
       };
     }
 
+    const input = normalizeInput(message);
+    const context = parseSessionContext(session.context_json);
+
+    if (input.menu && state !== "NEW") {
+      const landed = landingFor(identity.userType);
+      session = await this.persist(session.id, landed, identity);
+      return { session, identity, replies: landed.replies, notifications: [] };
+    }
+
+    if (input.help && !state.startsWith("VENDOR_REGISTRATION") && !state.startsWith("ADD_PRODUCT") && !state.startsWith("SEARCH") && !state.startsWith("ORDER_")) {
+      const landed = showHelp();
+      session = await this.persist(session.id, landed, identity);
+      return { session, identity, replies: landed.replies, notifications: [] };
+    }
+
+    const handler = getHandler(state);
+    let result: HandlerResult;
+    const orderAction =
+      identity.userType === "VENDOR" ? parseOrderAction(input) : null;
+    const turn: ConversationTurn = {
+      message,
+      session: { ...session, current_state: state },
+      identity,
+      context,
+      input,
+    };
+
+    try {
+      if (orderAction) {
+        result = await handleVendorOrderAction(turn, this.deps, orderAction);
+      } else {
+        let applied: HandlerResult | null = null;
+        if (this.deps.intent && shouldInterpretIntent(input, state)) {
+          const interpreted = await this.deps.intent.interpret({
+            text: input.raw,
+            userType: identity.userType,
+            state,
+          });
+          if (interpreted) {
+            applied = await applyInterpretedIntent(turn, this.deps, interpreted);
+          }
+        }
+        result = applied ?? (await handler(turn, this.deps));
+      }
+    } catch (error) {
+      if (isCommerceError(error)) {
+        result = {
+          state,
+          context,
+          replies: [textReply(error.message)],
+        };
+      } else {
+        throw error;
+      }
+    }
+
+    if (result.identity) {
+      identity = result.identity;
+    }
+
+    session = await this.persist(session.id, result, identity);
     return {
       session,
       identity,
-      replies: [{ kind: "text", text: PHASE_3_TEXT }],
+      replies: result.replies,
+      notifications: result.notifications ?? [],
     };
   }
 
+  private async persist(
+    sessionId: string,
+    result: HandlerResult,
+    identity: ConversationIdentity,
+  ): Promise<ConversationSession> {
+    let session = await this.deps.conversations.setState(
+      sessionId,
+      result.state,
+      toSessionJson(result.context),
+    );
+
+    if (identity.userId) {
+      session = await this.deps.conversations.attachUser(
+        sessionId,
+        identity.userType,
+        identity.userId,
+      );
+    }
+
+    return session;
+  }
+
   private async identify(phoneNumber: string): Promise<ConversationIdentity> {
-    const vendor = await this.vendors.getByWhatsapp(phoneNumber);
+    const vendor = await this.deps.vendors.getByWhatsapp(phoneNumber);
     if (vendor) {
       return { userType: "VENDOR", userId: vendor.id };
     }
 
-    const customer = await this.customers.getByWhatsapp(phoneNumber);
+    const customer = await this.deps.customers.getByWhatsapp(phoneNumber);
     if (customer) {
       return { userType: "CUSTOMER", userId: customer.id };
     }

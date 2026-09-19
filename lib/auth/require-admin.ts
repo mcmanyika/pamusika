@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getEnv } from "@/lib/env";
-import { isStaffRole } from "@/lib/auth/roles";
+import { resolveAdminAccess } from "@/lib/auth/access";
 import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/utils/logger";
 import type { Profile } from "@/types/database";
@@ -42,7 +42,17 @@ export async function requireAdmin(): Promise<{
     redirect("/auth/login?error=unauthorized");
   }
 
-  if (!profile || !isStaffRole(profile.role)) {
+  const access = resolveAdminAccess({
+    user: { id: user.id },
+    profile,
+  });
+
+  if (access !== "ok" || !profile) {
+    logger.warn({
+      operation: "require_admin",
+      result: "unauthorized",
+      userId: user.id,
+    });
     redirect("/auth/login?error=unauthorized");
   }
 

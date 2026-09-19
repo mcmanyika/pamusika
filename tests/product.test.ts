@@ -142,4 +142,24 @@ describe("product creation", () => {
     expect(results[0].name).toBe("Tomatoes");
     expect(results[0].vendor.id).toBe("vendor-1");
   });
+
+  it("removes a product by status instead of deleting it", async () => {
+    const vendors = [activeVendor()];
+    const service = new ProductService(
+      createMemoryProductStore({ vendors }),
+      trackedAnalytics().tracker,
+      createMemoryIdempotencyStore(),
+    );
+    const { product } = await service.createDraft({
+      vendorId: vendors[0]!.id,
+      name: "Tomatoes",
+      quantity: 20,
+      unit: "kg",
+      price: 1,
+    });
+    await service.publish(product.id);
+    const removed = await service.remove(product.id);
+    expect(removed.status).toBe("REMOVED");
+    expect(await service.getById(product.id)).toMatchObject({ id: product.id, status: "REMOVED" });
+  });
 });

@@ -5,6 +5,7 @@ export type WhatsAppInboundMessage = {
   timestamp: string | null;
   type: string;
   text: string | null;
+  choiceId: string | null;
   supported: boolean;
   mediaId: string | null;
   contactName: string | null;

@@ -64,6 +64,17 @@ export class ConversationService {
       ...(context !== undefined ? { context_json: context } : {}),
     });
   }
+
+  async attachUser(
+    sessionId: string,
+    userType: UserType,
+    userId: string,
+  ): Promise<ConversationSession> {
+    return this.store.update(sessionId, {
+      user_type: userType,
+      user_id: userId,
+    });
+  }
 }
 
 export function createConversationService(client: CommerceClient): ConversationService {

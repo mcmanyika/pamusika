@@ -8,8 +8,10 @@ import type { CustomerStore } from "@/lib/services/customer.service";
 import type { OrderRecord, OrderStore } from "@/lib/services/order.service";
 import type { ProductSearchHit, ProductStore } from "@/lib/services/product.service";
 import type { VendorStore } from "@/lib/services/vendor.service";
-import type { Customer, Product, Vendor } from "@/types/database";
-import type { ProductStatus } from "@/types/commerce";
+import type { CategoryStore } from "@/lib/services/category.service";
+import type { SupportStore } from "@/lib/services/support.service";
+import type { Customer, Category, Product, SupportTicket, Vendor } from "@/types/database";
+import type { OrderStatus, ProductStatus } from "@/types/commerce";
 
 export function createMemoryIdempotencyStore(): IdempotencyStore {
   const rows = new Map<string, string>();
@@ -25,7 +27,7 @@ export function createMemoryIdempotencyStore(): IdempotencyStore {
 }
 
 export function createMemoryVendorStore(seed: Vendor[] = []): VendorStore {
-  const vendors = [...seed];
+  const vendors = seed;
   let sequence = 1;
 
   return {
@@ -61,7 +63,7 @@ export function createMemoryVendorStore(seed: Vendor[] = []): VendorStore {
 }
 
 export function createMemoryCustomerStore(seed: Customer[] = []): CustomerStore {
-  const customers = [...seed];
+  const customers = seed;
 
   return {
     async findById(id) {
@@ -94,7 +96,7 @@ export function createMemoryProductStore(input: {
   products?: Product[];
 }): ProductStore {
   const vendors = input.vendors;
-  const products = [...(input.products ?? [])];
+  const products = input.products ?? [];
 
   return {
     async findById(id) {
@@ -180,7 +182,7 @@ export function createMemoryOrderStore(input: {
   const vendors = input.vendors;
   const customers = input.customers;
   const products = input.products;
-  const orders = [...(input.orders ?? [])];
+  const orders = input.orders ?? [];
   let sequence = 18472;
 
   return {
@@ -270,6 +272,20 @@ export function createMemoryOrderStore(input: {
         (order) => order.vendor_id === vendorId && order.status === "PENDING_VENDOR",
       );
     },
+    async listByVendor(vendorId, statuses) {
+      return orders.filter((order) => {
+        if (order.vendor_id !== vendorId) {
+          return false;
+        }
+        if (!statuses || statuses.length === 0) {
+          return true;
+        }
+        return statuses.includes(order.status as OrderStatus);
+      });
+    },
+    async listByCustomer(customerId) {
+      return orders.filter((order) => order.customer_id === customerId);
+    },
   };
 }
 
@@ -281,4 +297,59 @@ export function trackedAnalytics() {
     },
   };
   return { events, tracker };
+}
+
+export function createMemoryCategoryStore(seed: Category[] = []): CategoryStore {
+  const categories = seed;
+
+  return {
+    async listActive() {
+      return categories
+        .filter((category) => category.status === "ACTIVE")
+        .slice()
+        .sort((left, right) => left.sort_order - right.sort_order);
+    },
+    async findById(id) {
+      return categories.find((category) => category.id === id) ?? null;
+    },
+  };
+}
+
+export function createMemorySupportStore(seed: SupportTicket[] = []): SupportStore {
+  const tickets = seed;
+
+  return {
+    async findById(id) {
+      return tickets.find((ticket) => ticket.id === id) ?? null;
+    },
+    async findOpenByPhone(phone) {
+      return (
+        tickets
+          .filter((ticket) => ticket.phone_number === phone && ticket.status === "OPEN")
+          .sort((left, right) => right.created_at.localeCompare(left.created_at))[0] ?? null
+      );
+    },
+    async list(filters) {
+      return tickets
+        .filter((ticket) => {
+          if (filters?.status && ticket.status !== filters.status) return false;
+          if (filters?.userId && ticket.user_id !== filters.userId) return false;
+          return true;
+        })
+        .sort((left, right) => right.created_at.localeCompare(left.created_at))
+        .slice(0, filters?.limit ?? 100);
+    },
+    async create(ticket) {
+      tickets.push(ticket);
+      return ticket;
+    },
+    async update(id, patch) {
+      const index = tickets.findIndex((ticket) => ticket.id === id);
+      if (index === -1) {
+        throw new CommerceError("STORE_ERROR", "Support ticket not found");
+      }
+      tickets[index] = { ...tickets[index], ...patch, updated_at: new Date().toISOString() };
+      return tickets[index]!;
+    },
+  };
 }

@@ -15,15 +15,20 @@ export async function GET() {
     durationMs: Date.now() - started,
   });
 
-  return Response.json({
-    ok: true,
-    service: "paysell",
-    correlationId,
-    checks: {
-      supabase: status.supabase,
-      openai: status.openai,
-      whatsapp: status.whatsapp,
-      whatsappSignature: status.whatsappSignature,
+  return Response.json(
+    {
+      ok: true,
+      service: "paysell",
+      correlationId,
+      checks: {
+        supabase: status.supabase,
+        openai: status.openai,
+        whatsapp: status.whatsapp,
+        whatsappSignature: status.whatsappSignature,
+      },
     },
-  });
+    {
+      headers: { "Cache-Control": "no-store" },
+    },
+  );
 }

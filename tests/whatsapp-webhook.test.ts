@@ -1,19 +1,28 @@
 import { createHmac } from "crypto";
 import { describe, expect, it } from "vitest";
 import { ConversationEngine } from "@/lib/conversation/engine";
+import { CategoryService } from "@/lib/services/category.service";
 import { ConversationService } from "@/lib/services/conversation.service";
 import { CustomerService } from "@/lib/services/customer.service";
 import { MessageLogService } from "@/lib/services/message-log.service";
+import { OrderService } from "@/lib/services/order.service";
+import { ProductService } from "@/lib/services/product.service";
 import { VendorService } from "@/lib/services/vendor.service";
 import { parseWebhookPayload } from "@/lib/whatsapp/parser";
 import { processInboundPayload } from "@/lib/whatsapp/processor";
 import { WhatsAppSender } from "@/lib/whatsapp/sender";
 import { verifyMetaSignature, verifyWebhookSubscription } from "@/lib/whatsapp/webhook";
+import type { OrderRecord } from "@/lib/services/order.service";
+import type { Customer, Product, Vendor } from "@/types/database";
 import {
+  createMemoryCategoryStore,
   createMemoryCustomerStore,
   createMemoryIdempotencyStore,
+  createMemoryOrderStore,
+  createMemoryProductStore,
   createMemoryVendorStore,
 } from "./helpers/memory";
+import { testCategory } from "./helpers/conversation";
 import {
   createMemoryConversationStore,
   createMemoryMessageLogStore,
@@ -50,16 +59,31 @@ function textPayload(id: string, from = "263771234567", body = "Hello") {
 
 function createProcessor() {
   const whatsapp = createMockWhatsAppClient();
+  const vendors: Vendor[] = [];
+  const products: Product[] = [];
+  const customers: Customer[] = [];
+  const orders: OrderRecord[] = [];
   const logs = new MessageLogService(createMemoryMessageLogStore());
-  const engine = new ConversationEngine(
-    new ConversationService(createMemoryConversationStore()),
-    new VendorService(
-      createMemoryVendorStore(),
+  const engine = new ConversationEngine({
+    conversations: new ConversationService(createMemoryConversationStore()),
+    vendors: new VendorService(
+      createMemoryVendorStore(vendors),
       { async track() {} },
       createMemoryIdempotencyStore(),
     ),
-    new CustomerService(createMemoryCustomerStore()),
-  );
+    customers: new CustomerService(createMemoryCustomerStore(customers)),
+    products: new ProductService(
+      createMemoryProductStore({ vendors, products }),
+      { async track() {} },
+      createMemoryIdempotencyStore(),
+    ),
+    categories: new CategoryService(createMemoryCategoryStore([testCategory()])),
+    orders: new OrderService(
+      createMemoryOrderStore({ vendors, customers, products, orders }),
+      { async track() {} },
+      createMemoryIdempotencyStore(),
+    ),
+  });
   const sender = new WhatsAppSender(whatsapp.client, logs);
   return { ...whatsapp, logs, engine, sender };
 }
@@ -199,11 +223,25 @@ describe("webhook processing", () => {
     expect(sent[0]?.body).toMatch(/text messages/i);
   });
 
-  it("replies with the Phase 3 welcome for supported text", async () => {
+  it("replies with the main menu for supported text", async () => {
     const { engine, logs, sender, sent } = createProcessor();
     await processInboundPayload(textPayload("wamid.hello"), { engine, logs, sender });
-    expect(sent[0]?.body).toMatch(/Welcome to PaySell/i);
+    expect(sent[0]?.body).toMatch(/Buy and sell through WhatsApp/i);
     expect(sent[0]?.to).toBe("263771234567");
+  });
+
+  it("does not send stack traces when processing fails", async () => {
+    const { logs, sender, sent } = createProcessor();
+    const engine = {
+      handle: async () => {
+        throw new Error("secret inventory SQL TRACE");
+      },
+    } as unknown as ConversationEngine;
+
+    await processInboundPayload(textPayload("wamid.fail"), { engine, logs, sender });
+
+    expect(sent[0]?.body).toBe("Something went wrong. Please try again in a moment.");
+    expect(JSON.stringify(sent)).not.toMatch(/TRACE|SQL/i);
   });
 
   it("opens a new conversation after the previous session expires", async () => {

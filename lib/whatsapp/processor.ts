@@ -61,6 +61,13 @@ async function processOneMessage(
       replies: result.replies,
       replyToMessageId: message.externalMessageId,
     });
+    for (const notification of result.notifications) {
+      await deps.sender.sendReplies({
+        to: notification.waId,
+        phoneNumber: notification.phoneNumber,
+        replies: notification.replies,
+      });
+    }
     await deps.logs.markProcessed(claimed.log.id);
     logger.info({
       operation: "whatsapp_inbound",

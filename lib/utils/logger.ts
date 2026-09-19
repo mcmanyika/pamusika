@@ -21,11 +21,18 @@ const REDACTED_KEYS = [
   "service_role",
   "password",
   "refresh_token",
+  "phonenumber",
+  "whatsappnumber",
+  "whatsapp",
 ];
 
 function shouldRedact(key: string): boolean {
   const normalized = key.toLowerCase().replace(/[^a-z]/g, "");
   return REDACTED_KEYS.some((item) => normalized.includes(item.replace(/_/g, "")));
+}
+
+export function isSensitiveLogKey(key: string): boolean {
+  return shouldRedact(key);
 }
 
 function sanitize(fields: LogFields): Record<string, string | number | boolean> {

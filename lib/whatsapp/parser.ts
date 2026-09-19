@@ -65,6 +65,21 @@ function sanitizeMessage(message: Record<string, unknown>): Json {
   return sanitized;
 }
 
+function extractChoiceId(message: Record<string, unknown>, type: string): string | null {
+  if (type === "interactive") {
+    const interactive = asRecord(message.interactive);
+    const button = asRecord(interactive?.button_reply);
+    const list = asRecord(interactive?.list_reply);
+    return asString(button?.id) ?? asString(list?.id);
+  }
+
+  if (type === "button") {
+    return asString(asRecord(message.button)?.payload);
+  }
+
+  return null;
+}
+
 function extractText(message: Record<string, unknown>, type: string): string | null {
   if (type === "text") {
     return asString(asRecord(message.text)?.body);
@@ -161,6 +176,7 @@ export function parseWebhookPayload(payload: unknown): {
           timestamp: asString(message.timestamp),
           type,
           text: extractText(message, type),
+          choiceId: extractChoiceId(message, type),
           supported: isSupportedType(type),
           mediaId: asString(media?.id),
           contactName,
@@ -179,6 +195,7 @@ export function sanitizeInboundPayload(message: WhatsAppInboundMessage): Json {
     waId: message.waId,
     timestamp: message.timestamp,
     supported: message.supported,
+    choiceId: message.choiceId,
     mediaId: message.mediaId,
   };
 }

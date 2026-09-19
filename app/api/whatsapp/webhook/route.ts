@@ -1,12 +1,14 @@
 import { ConversationEngine } from "@/lib/conversation/engine";
 import { getEnv } from "@/lib/env";
+import { createOpenAIIntentInterpreter } from "@/lib/openai/intent";
 import { createCommerceServices } from "@/lib/services/create-commerce";
 import { createConversationService } from "@/lib/services/conversation.service";
 import { createMessageLogService } from "@/lib/services/message-log.service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createCorrelationId, logger } from "@/lib/utils/logger";
+import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 import { createWhatsAppClient } from "@/lib/whatsapp/client";
-import { getWhatsAppConfig } from "@/lib/whatsapp/config";
+import { getWhatsAppConfig, webhookBodyTooLarge, WHATSAPP_WEBHOOK_RATE_LIMIT, WHATSAPP_WEBHOOK_RATE_WINDOW_MS } from "@/lib/whatsapp/config";
 import { parseWebhookPayload } from "@/lib/whatsapp/parser";
 import { processInboundPayload } from "@/lib/whatsapp/processor";
 import { WhatsAppSender } from "@/lib/whatsapp/sender";
@@ -16,6 +18,17 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const limited = rateLimit(
+    `whatsapp-verify:${clientIp(request.headers)}`,
+    30,
+    WHATSAPP_WEBHOOK_RATE_WINDOW_MS,
+  );
+  if (!limited.ok) {
+    return new Response("Too Many Requests", {
+      status: 429,
+      headers: { "Retry-After": String(limited.retryAfterSec) },
+    });
+  }
   const config = getWhatsAppConfig();
   const url = new URL(request.url);
   const result = verifyWebhookSubscription({
@@ -45,10 +58,30 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const started = Date.now();
   const correlationId = createCorrelationId();
+  const limited = rateLimit(
+    `whatsapp-webhook:${clientIp(request.headers)}`,
+    WHATSAPP_WEBHOOK_RATE_LIMIT,
+    WHATSAPP_WEBHOOK_RATE_WINDOW_MS,
+  );
+  if (!limited.ok) {
+    return new Response("Too Many Requests", {
+      status: 429,
+      headers: { "Retry-After": String(limited.retryAfterSec) },
+    });
+  }
+
+  const declaredLength = request.headers.get("content-length");
+  if (webhookBodyTooLarge(declaredLength, 0)) {
+    return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
+
   const config = getWhatsAppConfig();
   const env = getEnv();
 
   const rawBody = await request.text();
+  if (webhookBodyTooLarge(declaredLength, rawBody.length)) {
+    return Response.json({ error: "Payload too large" }, { status: 413 });
+  }
 
   if (!config.isWebhookSignatureConfigured) {
     logger.warn({
@@ -106,11 +139,16 @@ export async function POST(request: Request) {
     const commerce = createCommerceServices(client);
     const logs = createMessageLogService(client);
     const conversations = createConversationService(client);
-    const engine = new ConversationEngine(
+    const engine = new ConversationEngine({
       conversations,
-      commerce.vendors,
-      commerce.customers,
-    );
+      vendors: commerce.vendors,
+      customers: commerce.customers,
+      products: commerce.products,
+      categories: commerce.categories,
+      orders: commerce.orders,
+      support: commerce.support,
+      intent: createOpenAIIntentInterpreter(),
+    });
     const sender = new WhatsAppSender(createWhatsAppClient(), logs);
 
     const result = await processInboundPayload(payload, { engine, logs, sender });

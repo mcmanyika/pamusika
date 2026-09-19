@@ -1,10 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getEnv } from "@/lib/env";
 import { isStaffRole } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/utils/logger";
+import { clientIp, rateLimit } from "@/lib/utils/rate-limit";
 import { loginSchema } from "@/lib/validation/auth";
 
 export type AuthFormState = {
@@ -19,6 +21,13 @@ export async function login(
 
   if (!env.isSupabaseBrowserConfigured) {
     return { error: "PaySell authentication is not configured yet." };
+  }
+
+  const ip = clientIp(await headers());
+  const limited = rateLimit(`admin-login:${ip}`, 10, 60_000);
+  if (!limited.ok) {
+    logger.warn({ operation: "admin_login", result: "rate_limited" });
+    return { error: "Too many sign-in attempts. Try again shortly." };
   }
 
   const parsed = loginSchema.safeParse({

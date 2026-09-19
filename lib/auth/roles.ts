@@ -6,21 +6,21 @@ export function isStaffRole(value: string | null | undefined): value is StaffRol
   return STAFF_ROLES.includes(value as StaffRole);
 }
 
-export function canManageStaff(role: StaffRole): boolean {
+export function canManageStaff(role: string): boolean {
   return role === "SUPER_ADMIN" || role === "ADMIN";
 }
 
-export function canManageCommerce(role: StaffRole): boolean {
+export function canManageCommerce(role: string): boolean {
   return role === "SUPER_ADMIN" || role === "ADMIN" || role === "OPERATIONS";
 }
 
-export function canHandleSupport(role: StaffRole): boolean {
+export function canHandleSupport(role: string): boolean {
   return (
     role === "SUPER_ADMIN" || role === "ADMIN" || role === "SUPPORT"
   );
 }
 
-export function canViewPii(role: StaffRole): boolean {
+export function canViewPii(role: string): boolean {
   return (
     role === "SUPER_ADMIN" ||
     role === "ADMIN" ||

@@ -4,6 +4,20 @@ const DEFAULT_GRAPH_BASE_URL = "https://graph.facebook.com";
 const DEFAULT_GRAPH_API_VERSION = "v25.0";
 export const WHATSAPP_REQUEST_TIMEOUT_MS = 15_000;
 export const WHATSAPP_MEDIA_TIMEOUT_MS = 20_000;
+export const WHATSAPP_WEBHOOK_MAX_BODY_BYTES = 256 * 1024;
+export const WHATSAPP_WEBHOOK_RATE_LIMIT = 120;
+export const WHATSAPP_WEBHOOK_RATE_WINDOW_MS = 60_000;
+
+export function webhookBodyTooLarge(
+  contentLengthHeader: string | null,
+  bodyByteLength: number,
+): boolean {
+  const declared = Number(contentLengthHeader ?? 0);
+  return (
+    declared > WHATSAPP_WEBHOOK_MAX_BODY_BYTES ||
+    bodyByteLength > WHATSAPP_WEBHOOK_MAX_BODY_BYTES
+  );
+}
 
 export function getWhatsAppConfig() {
   const env = getEnv();

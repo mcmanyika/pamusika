@@ -59,6 +59,8 @@ export type OrderStore = {
   update(id: string, patch: Partial<Order>): Promise<Order>;
   completeAndDecrementStock(orderId: string): Promise<Order>;
   listActionableByVendor(vendorId: string): Promise<OrderRecord[]>;
+  listByVendor(vendorId: string, statuses?: OrderStatus[]): Promise<OrderRecord[]>;
+  listByCustomer(customerId: string): Promise<OrderRecord[]>;
 };
 
 const CREATE_OPERATION = "CREATE_ORDER";
@@ -237,6 +239,14 @@ export class OrderService {
 
   async listActionableByVendor(vendorId: string): Promise<OrderRecord[]> {
     return this.store.listActionableByVendor(vendorId);
+  }
+
+  async listByVendor(vendorId: string, statuses?: OrderStatus[]): Promise<OrderRecord[]> {
+    return this.store.listByVendor(vendorId, statuses);
+  }
+
+  async listByCustomer(customerId: string): Promise<OrderRecord[]> {
+    return this.store.listByCustomer(customerId);
   }
 
   private async transition(
@@ -419,9 +429,60 @@ export function createOrderService(
         items: itemsByOrder.get(order.id) ?? [],
       }));
     },
+    async listByVendor(vendorId, statuses) {
+      let query = client
+        .from("orders")
+        .select("*")
+        .eq("vendor_id", vendorId)
+        .order("created_at", { ascending: false });
+      if (statuses && statuses.length > 0) {
+        query = query.in("status", statuses);
+      }
+      const { data: orderRows, error } = await query;
+      if (error) throwStoreError(error);
+      return attachItems(client, orderRows ?? []);
+    },
+    async listByCustomer(customerId) {
+      const { data: orderRows, error } = await client
+        .from("orders")
+        .select("*")
+        .eq("customer_id", customerId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throwStoreError(error);
+      return attachItems(client, orderRows ?? []);
+    },
   };
 
   return new OrderService(store, analytics, createIdempotencyStore(client));
+}
+
+async function attachItems(
+  client: CommerceClient,
+  orderRows: Order[],
+): Promise<OrderRecord[]> {
+  if (orderRows.length === 0) {
+    return [];
+  }
+
+  const orderIds = orderRows.map((order) => order.id);
+  const { data: itemRows, error: itemError } = await client
+    .from("order_items")
+    .select("*")
+    .in("order_id", orderIds);
+  if (itemError) throwStoreError(itemError);
+
+  const itemsByOrder = new Map<string, OrderItem[]>();
+  for (const item of itemRows ?? []) {
+    const list = itemsByOrder.get(item.order_id) ?? [];
+    list.push(item);
+    itemsByOrder.set(item.order_id, list);
+  }
+
+  return orderRows.map((order) => ({
+    ...order,
+    items: itemsByOrder.get(order.id) ?? [],
+  }));
 }
 
 export function parseOrderTotals(order: Order): {

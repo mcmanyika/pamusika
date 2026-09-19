@@ -26,6 +26,64 @@ export const CONVERSATION_STATES = [
 
 export type ConversationState = (typeof CONVERSATION_STATES)[number];
 
+export function isConversationState(value: string): value is ConversationState {
+  return (CONVERSATION_STATES as readonly string[]).includes(value);
+}
+
+export type RegistrationDraft = {
+  firstName?: string;
+  businessName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  city?: string;
+  area?: string;
+  preferredLanguage?: string;
+  preferredLanguageLabel?: string;
+};
+
+export type ProductDraft = {
+  name?: string;
+  quantity?: number;
+  unit?: string;
+  price?: number;
+  imageSkipped?: boolean;
+  draftId?: string;
+};
+
+export type SearchDraft = {
+  mode?: "query" | "category" | "nearby";
+  query?: string;
+  categoryId?: string;
+  categoryName?: string;
+  city?: string;
+  area?: string;
+  resultIds?: string[];
+};
+
+export type OrderDraft = {
+  productId?: string;
+  productName?: string;
+  unit?: string;
+  quantity?: number;
+  available?: number;
+  unitPrice?: number;
+  orderId?: string;
+};
+
+export type VendorOrderDraft = {
+  ids?: string[];
+  selectedId?: string;
+};
+
+export type SessionContext = {
+  registration?: RegistrationDraft;
+  product?: ProductDraft;
+  pendingProduct?: ProductDraft;
+  search?: SearchDraft;
+  order?: OrderDraft;
+  vendorOrders?: VendorOrderDraft;
+};
+
 export const MESSAGE_DIRECTIONS = ["INBOUND", "OUTBOUND"] as const;
 
 export type MessageDirection = (typeof MESSAGE_DIRECTIONS)[number];
