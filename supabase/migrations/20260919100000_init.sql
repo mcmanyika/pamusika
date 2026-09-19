@@ -450,9 +450,9 @@ CREATE TRIGGER enforce_profile_role_changes
 -- categories_select_staff           staff may read categories
 -- categories_write_commerce         SUPER_ADMIN/ADMIN/OPERATIONS may insert/update categories
 -- categories_delete_admin           SUPER_ADMIN/ADMIN may delete unused categories
--- vendors_select_pii_roles          SUPER_ADMIN/ADMIN/OPERATIONS/SUPPORT may read vendors
+-- vendors_select_staff              staff may read vendors (phones hidden in UI for ANALYST)
 -- vendors_write_commerce            SUPER_ADMIN/ADMIN/OPERATIONS may insert/update vendors
--- customers_select_pii_roles        SUPER_ADMIN/ADMIN/OPERATIONS/SUPPORT may read customers
+-- customers_select_staff            staff may read customers (phones hidden in UI for ANALYST)
 -- customers_write_ops_support       SUPER_ADMIN/ADMIN/OPERATIONS/SUPPORT may insert/update customers
 -- products_select_staff             staff may read products
 -- products_write_commerce           SUPER_ADMIN/ADMIN/OPERATIONS may insert/update products
@@ -537,9 +537,10 @@ CREATE POLICY categories_delete_admin
   USING (public.is_admin());
 
 DROP POLICY IF EXISTS vendors_select_pii_roles ON public.vendors;
-CREATE POLICY vendors_select_pii_roles
+DROP POLICY IF EXISTS vendors_select_staff ON public.vendors;
+CREATE POLICY vendors_select_staff
   ON public.vendors FOR SELECT TO authenticated
-  USING (public.can_view_pii());
+  USING (public.is_staff());
 
 DROP POLICY IF EXISTS vendors_write_commerce ON public.vendors;
 CREATE POLICY vendors_write_commerce
@@ -553,9 +554,10 @@ CREATE POLICY vendors_update_commerce
   WITH CHECK (public.can_manage_commerce());
 
 DROP POLICY IF EXISTS customers_select_pii_roles ON public.customers;
-CREATE POLICY customers_select_pii_roles
+DROP POLICY IF EXISTS customers_select_staff ON public.customers;
+CREATE POLICY customers_select_staff
   ON public.customers FOR SELECT TO authenticated
-  USING (public.can_view_pii());
+  USING (public.is_staff());
 
 DROP POLICY IF EXISTS customers_write_ops_support ON public.customers;
 CREATE POLICY customers_write_ops_support
