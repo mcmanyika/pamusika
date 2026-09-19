@@ -9,6 +9,8 @@ import type {
   Order,
   OrderItem,
   Product,
+  Referral,
+  ReferralCode,
   SupportTicket,
   Vendor,
 } from "@/types/database";
@@ -264,6 +266,44 @@ export async function loadCustomers(client: CommerceClient): Promise<CustomerLis
     ...customer,
     addresses: addressesByCustomer.get(customer.id) ?? [],
   }));
+}
+
+export type ReferralListRow = Referral & {
+  code: string;
+  referrerName: string | null;
+};
+
+export async function loadReferrals(client: CommerceClient): Promise<ReferralListRow[]> {
+  const { data, error } = await client
+    .from("referrals")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(200);
+  if (error) throwStoreError(error);
+  const referrals = data ?? [];
+
+  const { data: codes, error: codeError } = await client.from("referral_codes").select("*");
+  if (codeError) throwStoreError(codeError);
+  const [vendors, customers] = await Promise.all([allVendors(client), allCustomers(client)]);
+
+  const codeById = new Map((codes ?? []).map((code: ReferralCode) => [code.id, code.code]));
+  const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
+  const customerById = new Map(customers.map((customer) => [customer.id, customer]));
+
+  return referrals.map((referral) => {
+    const referrer =
+      referral.referrer_type === "VENDOR"
+        ? vendorById.get(referral.referrer_id)
+        : customerById.get(referral.referrer_id);
+    return {
+      ...referral,
+      code: codeById.get(referral.code_id) ?? "—",
+      referrerName:
+        referral.referrer_type === "VENDOR"
+          ? (referrer && "business_name" in referrer ? referrer.business_name : null)
+          : (referrer && "display_name" in referrer ? referrer.display_name : null),
+    };
+  });
 }
 
 export async function loadTickets(

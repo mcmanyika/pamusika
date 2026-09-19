@@ -1,6 +1,7 @@
 import { COPY, LANGUAGES, categoryMenuReplies, languageMenuReplies, registrationConfirmText, vendorMenuReplies } from "@/lib/conversation/copy";
 import { withRegistration } from "@/lib/conversation/context";
 import { continueProductDraft } from "@/lib/conversation/handlers/add-product";
+import { qualifyReferral, syncReferralIdentity } from "@/lib/conversation/handlers/referrals";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { parseLocation } from "@/lib/conversation/input";
 import { confirmReply, textReply } from "@/lib/conversation/replies";
@@ -147,6 +148,8 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
       idempotencyKey: `register:${turn.session.id}`,
     });
     const confirmed = await deps.vendors.confirm(vendor.id);
+    await syncReferralIdentity(deps, turn.message.phoneNumber, "VENDOR", confirmed.id);
+    await qualifyReferral(deps, turn.message.phoneNumber, "VENDOR", confirmed.id);
     const identity = { userType: "VENDOR" as const, userId: confirmed.id };
 
     if (turn.context.pendingProduct) {

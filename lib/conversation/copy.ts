@@ -58,6 +58,11 @@ export const COPY = {
   addressSetDefault: "This is now your default delivery address.",
   noAddresses: "You have no saved delivery addresses yet.",
   addressLimit: "You already have 8 saved addresses. Choose one to make it the default.",
+  referralApplied: "Referral saved. Welcome to PaySell.",
+  referralAlready: "This number already used a referral code.",
+  referralInvalid: "I could not find that referral code.",
+  referralSelf: "You cannot use your own referral code.",
+  referralRegistered: "Referral codes can only be used when you first join PaySell.",
 } as const;
 
 export const LANGUAGES = [
@@ -86,6 +91,7 @@ const VENDOR_MENU_BUTTONS = [
   { id: "4", title: "📊 My Sales" },
   { id: "5", title: "🏪 My Business" },
   { id: "6", title: "❓ Help / Support" },
+  { id: "7", title: "📣 Invite" },
   { id: "menu", title: "🏠 Main Menu" },
 ];
 
@@ -96,6 +102,7 @@ const CUSTOMER_MENU_BUTTONS = [
   { id: "4", title: "📦 My Orders" },
   { id: "5", title: "📍 My Addresses" },
   { id: "6", title: "❓ Help / Support" },
+  { id: "7", title: "📣 Invite" },
   { id: "menu", title: "🏠 Main Menu" },
 ];
 
@@ -406,4 +413,15 @@ export function addressSavedText(address: CustomerAddress): string {
 
 ${address.label}
 ${address.line1}${place ? `\n${place}` : ""}${address.is_default ? "\nDefault" : ""}`;
+}
+
+export function inviteText(code: string, qualified: number, total: number): string {
+  return `Invite friends to PaySell.
+
+Your code: ${code}
+
+They should send:
+REF ${code}
+
+People referred: ${qualified}${total !== qualified ? ` qualified / ${total} total` : ""}`;
 }

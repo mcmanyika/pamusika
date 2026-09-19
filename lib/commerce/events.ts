@@ -12,6 +12,8 @@ export const ANALYTICS_EVENTS = [
   "ORDER_COMPLETED",
   "ORDER_CANCELLED",
   "SUPPORT_REQUESTED",
+  "REFERRAL_APPLIED",
+  "REFERRAL_QUALIFIED",
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];

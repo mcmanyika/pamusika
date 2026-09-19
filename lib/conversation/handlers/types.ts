@@ -8,6 +8,7 @@ import type { CustomerService } from "@/lib/services/customer.service";
 import type { OrderService } from "@/lib/services/order.service";
 import type { ProductService } from "@/lib/services/product.service";
 import type { SupportService } from "@/lib/services/support.service";
+import type { ReferralService } from "@/lib/services/referral.service";
 import type { VendorService } from "@/lib/services/vendor.service";
 import type { IntentInterpreter } from "@/lib/openai/intent";
 import type { NormalizedInput } from "@/lib/conversation/input";
@@ -25,6 +26,7 @@ export type ConversationEngineDeps = {
   categories: CategoryService;
   orders: OrderService;
   support?: SupportService;
+  referrals?: ReferralService;
   intent?: IntentInterpreter;
 };
 

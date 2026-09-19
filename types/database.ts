@@ -75,6 +75,26 @@ export type Database = {
         created_at: string;
         updated_at: string;
       }>;
+      referral_codes: TableDefinition<{
+        id: string;
+        code: string;
+        owner_type: string;
+        owner_id: string;
+        created_at: string;
+      }>;
+      referrals: TableDefinition<{
+        id: string;
+        code_id: string;
+        referrer_type: string;
+        referrer_id: string;
+        referee_phone: string;
+        referee_type: string | null;
+        referee_id: string | null;
+        status: string;
+        qualified_at: string | null;
+        created_at: string;
+        updated_at: string;
+      }>;
       categories: TableDefinition<{
         id: string;
         name: string;
@@ -245,6 +265,8 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Vendor = Database["public"]["Tables"]["vendors"]["Row"];
 export type Customer = Database["public"]["Tables"]["customers"]["Row"];
 export type CustomerAddress = Database["public"]["Tables"]["customer_addresses"]["Row"];
+export type ReferralCode = Database["public"]["Tables"]["referral_codes"]["Row"];
+export type Referral = Database["public"]["Tables"]["referrals"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Product = Database["public"]["Tables"]["products"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"];

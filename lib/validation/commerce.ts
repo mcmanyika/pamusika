@@ -83,7 +83,13 @@ export const createOrderSchema = z.object({
 export type RegisterVendorInput = z.input<typeof registerVendorSchema>;
 export type UpdateVendorInput = z.input<typeof updateVendorSchema>;
 export type UpsertCustomerInput = z.input<typeof upsertCustomerSchema>;
+export const applyReferralSchema = z.object({
+  phoneNumber: z.string().min(7),
+  code: z.string().trim().min(4),
+});
+
 export type CreateCustomerAddressInput = z.input<typeof createCustomerAddressSchema>;
+export type ApplyReferralInput = z.input<typeof applyReferralSchema>;
 export type CreateProductDraftInput = z.input<typeof createProductDraftSchema>;
 export type SearchProductsInput = z.input<typeof searchProductsSchema>;
 export type CreateOrderInput = z.input<typeof createOrderSchema>;

@@ -7,7 +7,7 @@ import {
   customerMenuReplies,
 } from "@/lib/conversation/copy";
 import { withAddress } from "@/lib/conversation/context";
-import { landingFor } from "@/lib/conversation/handlers/shared";
+import { qualifyReferral, syncReferralIdentity } from "@/lib/conversation/handlers/referrals";
 import { parseLocation } from "@/lib/conversation/input";
 import { confirmReply, textReply } from "@/lib/conversation/replies";
 import type {
@@ -170,6 +170,7 @@ async function handleAddressConfirm(
     city: draft.city,
     area: draft.area,
   });
+  await qualifyReferral(deps, turn.message.phoneNumber, "CUSTOMER", customer.id);
   const addresses = await deps.customers.listAddresses(customer.id);
 
   return {
@@ -196,6 +197,7 @@ async function ensureCustomer(
     whatsappNumber: turn.message.phoneNumber,
     displayName: turn.message.contactName ?? undefined,
   });
+  await syncReferralIdentity(deps, turn.message.phoneNumber, "CUSTOMER", customer.id);
 
   return {
     customer,

@@ -136,6 +136,30 @@ CREATE TABLE IF NOT EXISTS public.customer_addresses (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS public.referral_codes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code text NOT NULL UNIQUE,
+  owner_type text NOT NULL CHECK (owner_type IN ('CUSTOMER', 'VENDOR')),
+  owner_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (owner_type, owner_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.referrals (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  code_id uuid NOT NULL REFERENCES public.referral_codes (id) ON DELETE RESTRICT,
+  referrer_type text NOT NULL CHECK (referrer_type IN ('CUSTOMER', 'VENDOR')),
+  referrer_id uuid NOT NULL,
+  referee_phone text NOT NULL UNIQUE,
+  referee_type text CHECK (referee_type IN ('CUSTOMER', 'VENDOR')),
+  referee_id uuid,
+  status text NOT NULL DEFAULT 'PENDING'
+    CHECK (status IN ('PENDING', 'QUALIFIED', 'REJECTED')),
+  qualified_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 CREATE TABLE IF NOT EXISTS public.products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   vendor_id uuid NOT NULL REFERENCES public.vendors (id) ON DELETE RESTRICT,
@@ -272,6 +296,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS customer_addresses_one_default_idx
   ON public.customer_addresses (customer_id)
   WHERE is_default;
 
+CREATE INDEX IF NOT EXISTS referral_codes_owner_idx ON public.referral_codes (owner_type, owner_id);
+CREATE INDEX IF NOT EXISTS referrals_referrer_idx ON public.referrals (referrer_type, referrer_id);
+CREATE INDEX IF NOT EXISTS referrals_status_idx ON public.referrals (status);
+
 CREATE INDEX IF NOT EXISTS products_vendor_id_idx ON public.products (vendor_id);
 CREATE INDEX IF NOT EXISTS products_category_id_idx ON public.products (category_id);
 CREATE INDEX IF NOT EXISTS products_status_idx ON public.products (status);
@@ -331,6 +359,11 @@ CREATE TRIGGER set_customers_updated_at
 DROP TRIGGER IF EXISTS set_customer_addresses_updated_at ON public.customer_addresses;
 CREATE TRIGGER set_customer_addresses_updated_at
   BEFORE UPDATE ON public.customer_addresses
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_referrals_updated_at ON public.referrals;
+CREATE TRIGGER set_referrals_updated_at
+  BEFORE UPDATE ON public.referrals
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 DROP TRIGGER IF EXISTS set_products_updated_at ON public.products;
@@ -501,6 +534,8 @@ ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.vendors ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_addresses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.referral_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
@@ -515,6 +550,8 @@ ALTER TABLE public.categories FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.vendors FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.customers FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.customer_addresses FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.referral_codes FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.referrals FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.products FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.orders FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items FORCE ROW LEVEL SECURITY;
@@ -611,6 +648,16 @@ CREATE POLICY customer_addresses_update_ops_support
   ON public.customer_addresses FOR UPDATE TO authenticated
   USING (public.can_view_pii())
   WITH CHECK (public.can_view_pii());
+
+DROP POLICY IF EXISTS referral_codes_select_staff ON public.referral_codes;
+CREATE POLICY referral_codes_select_staff
+  ON public.referral_codes FOR SELECT TO authenticated
+  USING (public.is_staff());
+
+DROP POLICY IF EXISTS referrals_select_staff ON public.referrals;
+CREATE POLICY referrals_select_staff
+  ON public.referrals FOR SELECT TO authenticated
+  USING (public.is_staff());
 
 DROP POLICY IF EXISTS products_select_staff ON public.products;
 CREATE POLICY products_select_staff
@@ -710,6 +757,8 @@ REVOKE ALL ON TABLE public.categories FROM anon;
 REVOKE ALL ON TABLE public.vendors FROM anon;
 REVOKE ALL ON TABLE public.customers FROM anon;
 REVOKE ALL ON TABLE public.customer_addresses FROM anon;
+REVOKE ALL ON TABLE public.referral_codes FROM anon;
+REVOKE ALL ON TABLE public.referrals FROM anon;
 REVOKE ALL ON TABLE public.products FROM anon;
 REVOKE ALL ON TABLE public.orders FROM anon;
 REVOKE ALL ON TABLE public.order_items FROM anon;
@@ -724,6 +773,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.categories TO authenticated
 GRANT SELECT, INSERT, UPDATE ON TABLE public.vendors TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.customers TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.customer_addresses TO authenticated;
+GRANT SELECT ON TABLE public.referral_codes TO authenticated;
+GRANT SELECT ON TABLE public.referrals TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.products TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.orders TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.order_items TO authenticated;

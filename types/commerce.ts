@@ -88,3 +88,11 @@ export type TicketPriority = (typeof TICKET_PRIORITIES)[number];
 export const USER_TYPES = ["VENDOR", "CUSTOMER", "UNKNOWN"] as const;
 
 export type UserType = (typeof USER_TYPES)[number];
+
+export const REFERRAL_OWNER_TYPES = ["CUSTOMER", "VENDOR"] as const;
+
+export type ReferralOwnerType = (typeof REFERRAL_OWNER_TYPES)[number];
+
+export const REFERRAL_STATUSES = ["PENDING", "QUALIFIED", "REJECTED"] as const;
+
+export type ReferralStatus = (typeof REFERRAL_STATUSES)[number];

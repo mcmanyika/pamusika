@@ -204,6 +204,7 @@ describe("conversation engine", () => {
               { id: "4", title: "📦 My Orders" },
               { id: "5", title: "📍 My Addresses" },
               { id: "6", title: "❓ Help / Support" },
+              { id: "7", title: "📣 Invite" },
               { id: "menu", title: "🏠 Main Menu" },
             ],
           },
@@ -378,6 +379,38 @@ describe("conversation engine", () => {
     expect(addresses[1]?.label).toBe("Work");
     expect(result.session.current_state).toBe("CUSTOMER_ADDRESSES");
     expect(result.identity.userType).toBe("CUSTOMER");
+  });
+
+  it("lets a vendor invite a new number with a referral code", async () => {
+    const { engine, referrals } = createConversationHarness();
+    await say(engine, "2");
+    await say(engine, "Tariro");
+    await say(engine, "Tariro Fresh Produce");
+    await say(engine, "1");
+    await say(engine, "Harare, Mbare");
+    await say(engine, "1");
+    await say(engine, "YES", { choiceId: "yes" });
+
+    const invite = await say(engine, "7");
+    const inviteText = invite.replies[0]?.kind === "text" ? invite.replies[0].text : "";
+    const code = /PS-R[A-Z0-9]+/.exec(inviteText)?.[0];
+    expect(code).toMatch(/^PS-R[A-Z0-9]{5}$/);
+
+    const guest = { phoneNumber: "+263779999999", waId: "263779999999" };
+    const applied = await say(engine, `REF ${code}`, guest);
+    expect(applied.replies[0]?.kind === "text" && applied.replies[0].text).toMatch(/Referral saved/i);
+    expect(referrals[0]?.status).toBe("PENDING");
+
+    await say(engine, "2", guest);
+    await say(engine, "Rudo", guest);
+    await say(engine, "Rudo Greens", guest);
+    await say(engine, "1", guest);
+    await say(engine, "Harare, CBD", guest);
+    await say(engine, "1", guest);
+    await say(engine, "YES", { ...guest, choiceId: "yes" });
+
+    expect(referrals[0]?.status).toBe("QUALIFIED");
+    expect(referrals[0]?.referee_type).toBe("VENDOR");
   });
 
   it("creates a support ticket when the user asks to talk to support", async () => {

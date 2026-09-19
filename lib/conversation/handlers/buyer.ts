@@ -12,6 +12,7 @@ import {
 } from "@/lib/conversation/copy";
 import { withOrder, withSearch } from "@/lib/conversation/context";
 import { handleBuyerAddresses, showCustomerAddresses } from "@/lib/conversation/handlers/buyer-addresses";
+import { qualifyReferral, showInvite, syncReferralIdentity } from "@/lib/conversation/handlers/referrals";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { parseLocation, parsePositiveNumber } from "@/lib/conversation/input";
 import { orderButtonsReply, skipReply, textReply, yesNoReply } from "@/lib/conversation/replies";
@@ -133,6 +134,14 @@ async function handleCustomerMenu(
 
   if (turn.input.choice === 5) {
     return showCustomerAddresses(turn, deps);
+  }
+
+  if (turn.input.choice === 7) {
+    return showInvite(turn, deps, {
+      state: "CUSTOMER_MENU",
+      context: {},
+      replies: customerMenuReplies(),
+    });
   }
 
   if (turn.input.greeting || turn.input.menu) {
@@ -312,6 +321,7 @@ async function handleOrderConfirm(
     area: turn.context.search?.area,
     city: turn.context.search?.city,
   });
+  await syncReferralIdentity(deps, turn.message.phoneNumber, "CUSTOMER", customer.id);
 
   const { order, created } = await deps.orders.create({
     customerId: customer.id,
@@ -325,6 +335,7 @@ async function handleOrderConfirm(
   const notifications: EngineNotification[] = [];
 
   if (created) {
+    await qualifyReferral(deps, turn.message.phoneNumber, "CUSTOMER", customer.id);
     const vendor = await deps.vendors.getById(order.vendor_id);
     if (vendor) {
       notifications.push({

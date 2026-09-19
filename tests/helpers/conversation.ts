@@ -5,14 +5,26 @@ import { CustomerService } from "@/lib/services/customer.service";
 import { OrderService } from "@/lib/services/order.service";
 import { ProductService } from "@/lib/services/product.service";
 import { SupportService } from "@/lib/services/support.service";
+import { ReferralService } from "@/lib/services/referral.service";
 import { VendorService } from "@/lib/services/vendor.service";
 import type { ConversationEngineDeps } from "@/lib/conversation/handlers/types";
 import type { OrderRecord } from "@/lib/services/order.service";
-import type { Category, Customer, CustomerAddress, Product, SupportTicket, Vendor } from "@/types/database";
+import type {
+  Category,
+  Customer,
+  CustomerAddress,
+  Product,
+  Referral,
+  ReferralCode,
+  SupportTicket,
+  Vendor,
+} from "@/types/database";
 import type { WhatsAppInboundMessage } from "@/types/whatsapp";
 import {
   createMemoryCategoryStore,
   createMemoryCustomerStore,
+  createMemoryReferralOwners,
+  createMemoryReferralStore,
   createMemoryIdempotencyStore,
   createMemoryOrderStore,
   createMemoryProductStore,
@@ -61,6 +73,8 @@ export function createConversationHarness(options?: {
   const products: Product[] = [];
   const customers: Customer[] = [];
   const addresses: CustomerAddress[] = [];
+  const referralCodes: ReferralCode[] = [];
+  const referrals: Referral[] = [];
   const orders: OrderRecord[] = [];
   const tickets: SupportTicket[] = [];
   const categories = [testCategory(), testCategory("cat-other", "Other")];
@@ -86,8 +100,23 @@ export function createConversationHarness(options?: {
       createMemoryIdempotencyStore(),
     ),
     support: new SupportService(createMemorySupportStore(tickets), { async track() {} }),
+    referrals: new ReferralService(
+      createMemoryReferralStore(referralCodes, referrals),
+      createMemoryReferralOwners(customers, vendors),
+    ),
     intent: options?.intent,
   });
 
-  return { engine, vendors, products, customers, addresses, orders, categories, tickets };
+  return {
+    engine,
+    vendors,
+    products,
+    customers,
+    addresses,
+    referralCodes,
+    referrals,
+    orders,
+    categories,
+    tickets,
+  };
 }

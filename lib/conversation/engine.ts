@@ -1,8 +1,10 @@
 import { isCommerceError } from "@/lib/commerce/errors";
 import { parseSessionContext, toSessionJson } from "@/lib/conversation/context";
 import { COPY } from "@/lib/conversation/copy";
+import { referralResultText } from "@/lib/conversation/handlers/referrals";
 import { landingFor, showHelp } from "@/lib/conversation/handlers/shared";
 import { normalizeInput, parseOrderAction } from "@/lib/conversation/input";
+import { parseReferralCode } from "@/lib/services/referral.service";
 import { applyInterpretedIntent, shouldInterpretIntent } from "@/lib/conversation/intent";
 import { getHandler, resolveState } from "@/lib/conversation/router";
 import { handleVendorOrderAction } from "@/lib/conversation/handlers/vendor-orders";
@@ -63,6 +65,26 @@ export class ConversationEngine {
       return { session, identity, replies: landed.replies, notifications: [] };
     }
 
+    const referralCode = parseReferralCode(input.raw);
+    let referralNote: string | null = null;
+    if (referralCode && this.deps.referrals) {
+      const applied = await this.deps.referrals.applyCode({
+        phoneNumber: message.phoneNumber,
+        code: referralCode,
+      });
+      referralNote = referralResultText(applied);
+      if (isReferralOnlyMessage(input.raw)) {
+        const landed = landingFor();
+        session = await this.persist(session.id, landed, identity);
+        return {
+          session,
+          identity,
+          replies: [textReply(referralNote), ...landed.replies],
+          notifications: [],
+        };
+      }
+    }
+
     const handler = getHandler(state);
     let result: HandlerResult;
     const orderAction =
@@ -112,7 +134,7 @@ export class ConversationEngine {
     return {
       session,
       identity,
-      replies: result.replies,
+      replies: referralNote ? [textReply(referralNote), ...result.replies] : result.replies,
       notifications: result.notifications ?? [],
     };
   }
@@ -152,4 +174,8 @@ export class ConversationEngine {
 
     return { userType: "UNKNOWN", userId: null };
   }
+}
+
+function isReferralOnlyMessage(value: string): boolean {
+  return /^(ref(?:er(?:ral)?)?[\s:-]*)?ps[-]?r[a-z0-9]{5,8}$/i.test(value.trim());
 }

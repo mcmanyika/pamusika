@@ -5,12 +5,22 @@ import { assertOrderTransition, isOrderStatus } from "@/lib/commerce/order-state
 import { CommerceError } from "@/lib/commerce/errors";
 import type { IdempotencyStore } from "@/lib/services/idempotency";
 import type { CustomerStore } from "@/lib/services/customer.service";
+import type { ReferralOwnerLookup, ReferralStore } from "@/lib/services/referral.service";
 import type { OrderRecord, OrderStore } from "@/lib/services/order.service";
 import type { ProductSearchHit, ProductStore } from "@/lib/services/product.service";
 import type { VendorStore } from "@/lib/services/vendor.service";
 import type { CategoryStore } from "@/lib/services/category.service";
 import type { SupportStore } from "@/lib/services/support.service";
-import type { Customer, CustomerAddress, Category, Product, SupportTicket, Vendor } from "@/types/database";
+import type {
+  Customer,
+  CustomerAddress,
+  Category,
+  Product,
+  Referral,
+  ReferralCode,
+  SupportTicket,
+  Vendor,
+} from "@/types/database";
 import type { OrderStatus, ProductStatus } from "@/types/commerce";
 
 export function createMemoryIdempotencyStore(): IdempotencyStore {
@@ -378,6 +388,73 @@ export function createMemorySupportStore(seed: SupportTicket[] = []): SupportSto
       }
       tickets[index] = { ...tickets[index], ...patch, updated_at: new Date().toISOString() };
       return tickets[index]!;
+    },
+  };
+}
+
+export function createMemoryReferralStore(
+  codes: ReferralCode[] = [],
+  referrals: Referral[] = [],
+): ReferralStore {
+  return {
+    async findCode(code) {
+      return codes.find((row) => row.code === code) ?? null;
+    },
+    async findCodeByOwner(ownerType, ownerId) {
+      return (
+        codes.find((row) => row.owner_type === ownerType && row.owner_id === ownerId) ?? null
+      );
+    },
+    async createCode(code) {
+      codes.push(code);
+      return code;
+    },
+    async findReferralByPhone(phone) {
+      return referrals.find((row) => row.referee_phone === phone) ?? null;
+    },
+    async createReferral(referral) {
+      referrals.push(referral);
+      return referral;
+    },
+    async updateReferral(id, patch) {
+      const index = referrals.findIndex((row) => row.id === id);
+      if (index === -1) {
+        throw new CommerceError("REFERRAL_NOT_FOUND", "Referral not found");
+      }
+      referrals[index] = {
+        ...referrals[index],
+        ...patch,
+        updated_at: new Date().toISOString(),
+      };
+      return referrals[index]!;
+    },
+    async listByReferrer(ownerType, ownerId) {
+      return referrals.filter(
+        (row) => row.referrer_type === ownerType && row.referrer_id === ownerId,
+      );
+    },
+    async listAll() {
+      return referrals.slice().sort((left, right) => right.created_at.localeCompare(left.created_at));
+    },
+  };
+}
+
+export function createMemoryReferralOwners(
+  customers: Customer[] = [],
+  vendors: Vendor[] = [],
+): ReferralOwnerLookup {
+  return {
+    async ownerPhone(ownerType, ownerId) {
+      if (ownerType === "VENDOR") {
+        return vendors.find((vendor) => vendor.id === ownerId)?.whatsapp_number ?? null;
+      }
+      return customers.find((customer) => customer.id === ownerId)?.whatsapp_number ?? null;
+    },
+    async isRegistered(phone) {
+      return (
+        vendors.some((vendor) => vendor.whatsapp_number === phone) ||
+        customers.some((customer) => customer.whatsapp_number === phone)
+      );
     },
   };
 }
