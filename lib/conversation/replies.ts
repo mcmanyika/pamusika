@@ -4,6 +4,17 @@ export function textReply(text: string): EngineReply {
   return { kind: "text", text };
 }
 
+export function buttonReply(
+  body: string,
+  buttons: Array<{ id: string; title: string }>,
+): EngineReply {
+  const message: WhatsAppInteractiveMessage = {
+    body,
+    buttons: buttons.slice(0, 3),
+  };
+  return { kind: "interactive", message };
+}
+
 export function listReply(
   body: string,
   rows: WhatsAppListRow[],

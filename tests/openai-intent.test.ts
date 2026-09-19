@@ -155,6 +155,7 @@ describe("intent routing", () => {
       ["help", "CUSTOMER_MENU", {}],
       ["menu", "VENDOR_MENU", {}],
       ["Add / Sell a Product", "VENDOR_MENU", { type: "interactive", choiceId: "1" }],
+      ["Buyer Menu", "MAIN_MENU", { type: "interactive", choiceId: "buyer" }],
     ];
 
     for (const [text, state, extras] of cases) {

@@ -18,24 +18,13 @@ describe("conversation engine", () => {
     expect(result.replies[0]).toMatchObject({ kind: "interactive" });
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/You're in the main menu/i);
+    ).toMatch(/Buy and sell through WhatsApp/i);
     expect(
-      result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toMatch(/1 —/);
-    expect(
-      result.replies[0]?.kind === "interactive" &&
-        result.replies[0].message.list?.sections[0],
-    ).toMatchObject({ title: "Menu" });
-    expect(
-      result.replies[0]?.kind === "interactive" &&
-        result.replies[0].message.list?.sections[0]?.rows,
-    ).toHaveLength(5);
-    expect(
-      result.replies[0]?.kind === "interactive" &&
-        result.replies[0].message.list?.sections[0]?.rows?.some((row) =>
-          /My Business/.test(row.title),
-        ),
-    ).toBe(true);
+      result.replies[0]?.kind === "interactive" && result.replies[0].message.buttons,
+    ).toEqual([
+      { id: "buyer", title: "Buyer Menu" },
+      { id: "vendor", title: "Vendor Menu" },
+    ]);
   });
 
   it("registers a vendor through the menu and activates them on confirm", async () => {
@@ -158,30 +147,23 @@ describe("conversation engine", () => {
     );
   });
 
-  it("opens sell from a WhatsApp list tap", async () => {
+  it("opens vendor registration from the Vendor Menu button", async () => {
     const { engine } = createConversationHarness();
     await say(engine, "hi");
-    const result = await say(engine, "Sell Something", {
+    const result = await say(engine, "Vendor Menu", {
       type: "interactive",
-      choiceId: "2",
+      choiceId: "vendor",
     });
     expect(result.session.current_state).toBe("VENDOR_REGISTRATION_NAME");
   });
 
-  it("opens vendor registration from My Business", async () => {
+  it("opens the buyer menu from the Buyer Menu button", async () => {
     const { engine } = createConversationHarness();
     await say(engine, "hi");
-    const result = await say(engine, "My Business", {
+    const result = await say(engine, "Buyer Menu", {
       type: "interactive",
-      choiceId: "4",
+      choiceId: "buyer",
     });
-    expect(result.session.current_state).toBe("VENDOR_REGISTRATION_NAME");
-  });
-
-  it("opens the buyer menu from Buy Something", async () => {
-    const { engine } = createConversationHarness();
-    await say(engine, "hi");
-    const result = await say(engine, "1");
     expect(result.session.current_state).toBe("CUSTOMER_MENU");
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,

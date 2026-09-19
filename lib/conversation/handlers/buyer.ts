@@ -70,7 +70,7 @@ async function handleCustomerMenu(
     return landingFor("CUSTOMER");
   }
 
-  if (turn.input.help || turn.input.choice === 6) {
+  if (turn.input.help || turn.input.choice === 5) {
     return {
       state: "SUPPORT",
       context: {},
@@ -123,14 +123,6 @@ async function handleCustomerMenu(
       state: "CUSTOMER_MENU",
       context: {},
       replies: [textReply(customerOrdersText(orders))],
-    };
-  }
-
-  if (turn.input.choice === 5) {
-    return {
-      state: "VENDOR_REGISTRATION_NAME",
-      context: {},
-      replies: [textReply(COPY.askName)],
     };
   }
 

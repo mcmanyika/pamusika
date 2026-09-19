@@ -20,7 +20,10 @@ export function normalizeInput(message: WhatsAppInboundMessage): NormalizedInput
   const raw = (message.text ?? message.choiceId ?? "").trim();
   const normalized = raw.toLowerCase();
   const choiceId = message.choiceId?.trim().toLowerCase() || null;
-  const choice = parseMenuChoice(normalized) ?? (choiceId ? parseMenuChoice(choiceId) : null);
+  const choice =
+    parseMenuChoice(normalized) ??
+    (choiceId ? parseMenuChoice(choiceId) : null) ??
+    parseRoleChoice(choiceId, normalized);
 
   return {
     raw,
@@ -34,6 +37,16 @@ export function normalizeInput(message: WhatsAppInboundMessage): NormalizedInput
     help: isHelp(normalized, choiceId),
     greeting: GREETINGS.has(normalized),
   };
+}
+
+function parseRoleChoice(choiceId: string | null, normalized: string): number | null {
+  if (choiceId === "buyer" || normalized === "buyer" || normalized === "buyer menu") {
+    return 1;
+  }
+  if (choiceId === "vendor" || normalized === "vendor" || normalized === "vendor menu") {
+    return 2;
+  }
+  return null;
 }
 
 export function parseMenuChoice(value: string): number | null {

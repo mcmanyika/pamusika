@@ -1,4 +1,4 @@
-import { COPY, customerMenuReply, helpReply, mainMenuReply, vendorMenuReply } from "@/lib/conversation/copy";
+import { COPY, helpReply, mainMenuReply, vendorMenuReply } from "@/lib/conversation/copy";
 import { textReply } from "@/lib/conversation/replies";
 import type {
   ConversationEngineDeps,
@@ -13,14 +13,6 @@ export function landingFor(userType: string): HandlerResult {
       state: "VENDOR_MENU",
       context: {},
       replies: [vendorMenuReply()],
-    };
-  }
-
-  if (userType === "CUSTOMER") {
-    return {
-      state: "CUSTOMER_MENU",
-      context: {},
-      replies: [customerMenuReply()],
     };
   }
 

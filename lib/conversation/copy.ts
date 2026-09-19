@@ -1,5 +1,5 @@
 import { moneyString, parseDecimal } from "@/lib/commerce/money";
-import { listReply } from "@/lib/conversation/replies";
+import { buttonReply, listReply } from "@/lib/conversation/replies";
 import { PRODUCT_UNITS } from "@/types/commerce";
 import type { Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
@@ -60,10 +60,9 @@ export const LANGUAGES = [
 export function mainMenuText(): string {
   return `Welcome to PaySell 👋
 
-You're in the main menu.
-Here you can buy products, sell stock, and check your orders.
+Buy and sell through WhatsApp.
 
-What would you like to do?`;
+Tap Buyer Menu to shop, or Vendor Menu to sell.`;
 }
 
 export function vendorMenuText(): string {
@@ -93,14 +92,6 @@ Vendors can list products and accept, ready, and complete orders.
 What would you like to do?`;
 }
 
-const MAIN_MENU_ROWS: WhatsAppListRow[] = [
-  { id: "1", title: "🛒 Buy Something", description: "Search and order products near you" },
-  { id: "2", title: "➕ Sell Something", description: "Register and list products for sale" },
-  { id: "3", title: "📦 My Orders", description: "Track your collection orders" },
-  { id: "4", title: "🏪 My Business", description: "Register or open your vendor menu" },
-  { id: "5", title: "❓ Help / Support", description: "Get help or speak to our team" },
-];
-
 const VENDOR_MENU_ROWS: WhatsAppListRow[] = [
   { id: "1", title: "➕ Sell a Product", description: "List a new product for sale" },
   { id: "2", title: "📦 My Products", description: "View, update or remove your products" },
@@ -115,8 +106,7 @@ const CUSTOMER_MENU_ROWS: WhatsAppListRow[] = [
   { id: "2", title: "📂 Browse Categories", description: "Shop by product category" },
   { id: "3", title: "📍 Vendors Near Me", description: "Find sellers in your area" },
   { id: "4", title: "📦 My Orders", description: "View and track your orders" },
-  { id: "5", title: "🏪 My Business", description: "Register or open your vendor menu" },
-  { id: "6", title: "❓ Help / Support", description: "Get help or speak to our team" },
+  { id: "5", title: "❓ Help / Support", description: "Get help or speak to our team" },
 ];
 
 const HELP_MENU_ROWS: WhatsAppListRow[] = [
@@ -125,7 +115,10 @@ const HELP_MENU_ROWS: WhatsAppListRow[] = [
 ];
 
 export function mainMenuReply(): EngineReply {
-  return listReply(mainMenuText(), MAIN_MENU_ROWS);
+  return buttonReply(mainMenuText(), [
+    { id: "buyer", title: "Buyer Menu" },
+    { id: "vendor", title: "Vendor Menu" },
+  ]);
 }
 
 export function vendorMenuReply(): EngineReply {
