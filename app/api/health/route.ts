@@ -1,6 +1,8 @@
 import { getPublicIntegrationStatus } from "@/lib/env";
 import { createCorrelationId, logger } from "@/lib/utils/logger";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const started = Date.now();
   const correlationId = createCorrelationId();
@@ -21,6 +23,7 @@ export async function GET() {
       supabase: status.supabase,
       openai: status.openai,
       whatsapp: status.whatsapp,
+      whatsappSignature: status.whatsappSignature,
     },
   });
 }

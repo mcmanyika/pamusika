@@ -17,7 +17,7 @@ export function getEnv() {
   const metaBusinessAccountId = readEnv("META_WHATSAPP_BUSINESS_ACCOUNT_ID");
   const metaWebhookVerifyToken = readEnv("META_WEBHOOK_VERIFY_TOKEN");
   const metaAppSecret = readEnv("META_APP_SECRET");
-  const metaGraphApiVersion = readEnv("META_GRAPH_API_VERSION") || "v21.0";
+  const metaGraphApiVersion = readEnv("META_GRAPH_API_VERSION");
   const appUrl = readEnv("NEXT_PUBLIC_APP_URL") || "http://localhost:3000";
 
   return {
@@ -42,6 +42,7 @@ export function getEnv() {
       isPresent(metaAccessToken) &&
       isPresent(metaPhoneNumberId) &&
       isPresent(metaWebhookVerifyToken),
+    isMetaWebhookSignatureConfigured: isPresent(metaAppSecret),
   };
 }
 
@@ -52,5 +53,6 @@ export function getPublicIntegrationStatus() {
     supabase: env.isSupabaseBrowserConfigured,
     openai: env.isOpenAIConfigured,
     whatsapp: env.isMetaWhatsAppConfigured,
+    whatsappSignature: env.isMetaWebhookSignatureConfigured,
   };
 }

@@ -10,8 +10,8 @@ type GenericRow = Record<string, unknown>;
 
 type TableDefinition<
   Row extends GenericRow,
-  Insert extends GenericRow = Row,
-  Update extends Partial<Row> = Partial<Row>,
+  Insert extends GenericRow = Partial<Row>,
+  Update extends GenericRow = Partial<Row>,
 > = {
   Row: Row;
   Insert: Insert;
@@ -173,6 +173,14 @@ export type Database = {
         new_value: Json | null;
         created_at: string;
       }>;
+      idempotency_keys: TableDefinition<{
+        id: string;
+        key: string;
+        operation: string;
+        entity_type: string;
+        entity_id: string | null;
+        created_at: string;
+      }>;
     };
     Views: {
       [_ in never]: never;
@@ -185,6 +193,29 @@ export type Database = {
       generate_order_number: {
         Args: Record<string, never>;
         Returns: string;
+      };
+      complete_order_and_decrement_stock: {
+        Args: { p_order_id: string };
+        Returns: {
+          id: string;
+          order_number: string;
+          customer_id: string;
+          vendor_id: string;
+          status: string;
+          subtotal: string;
+          delivery_fee: string;
+          total: string;
+          currency: string;
+          fulfilment_method: string;
+          payment_method: string | null;
+          payment_status: string;
+          created_at: string;
+          updated_at: string;
+          accepted_at: string | null;
+          ready_at: string | null;
+          completed_at: string | null;
+          cancelled_at: string | null;
+        };
       };
     };
     Enums: {
