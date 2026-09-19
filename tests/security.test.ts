@@ -123,18 +123,17 @@ describe("menu buttons", () => {
     });
   });
 
-  it("sends buyer, vendor, and help options as reply buttons", () => {
-    const menus = [...customerMenuReplies(), ...vendorMenuReplies(), ...helpReplies()];
-    expect(menus.length).toBeGreaterThan(0);
-    for (const reply of menus) {
-      expect(reply.kind).toBe("interactive");
-      if (reply.kind !== "interactive") {
-        continue;
-      }
-      expect(reply.message.body.trim()).not.toBe("");
-      expect(reply.message.list).toBeUndefined();
-      expect(interactivePayload(reply.message).type).toBe("button");
-    }
+  it("sends each menu as one interactive message", () => {
+    expect(customerMenuReplies()).toHaveLength(1);
+    expect(vendorMenuReplies()).toHaveLength(1);
+    expect(helpReplies()).toHaveLength(1);
+
+    const buyer = customerMenuReplies()[0];
+    const vendor = vendorMenuReplies()[0];
+    const help = helpReplies()[0];
+    expect(buyer?.kind === "interactive" && interactivePayload(buyer.message).type).toBe("list");
+    expect(vendor?.kind === "interactive" && interactivePayload(vendor.message).type).toBe("list");
+    expect(help?.kind === "interactive" && interactivePayload(help.message).type).toBe("button");
   });
 
   it("never sends a blank interactive body, which Meta rejects", () => {

@@ -24,30 +24,48 @@ export function buttonReply(
   return { kind: "interactive", message };
 }
 
-export function menuButtonReplies(
-  items: Array<{ id: string; title: string }>,
-  extras: { header?: string; body?: string; footer?: string } = {},
+export function listReply(
+  body: string,
+  rows: WhatsAppListRow[],
+  extras: { button?: string; header?: string; footer?: string } = {},
+): EngineReply {
+  const message: WhatsAppInteractiveMessage = {
+    body: requiredInteractiveBody(body),
+    header: extras.header,
+    footer: extras.footer,
+    list: {
+      button: extras.button ?? "Choose",
+      sections: [{ title: "Menu", rows: rows.slice(0, 10) }],
+    },
+  };
+  return { kind: "interactive", message };
+}
+
+export function singleMenuReplies(
+  items: WhatsAppListRow[],
+  extras: { header?: string; body?: string; footer?: string; button?: string } = {},
 ): EngineReply[] {
-  const buttons = items.slice(0, 10);
-  if (buttons.length === 0) {
+  const options = items.slice(0, 10);
+  if (options.length === 0) {
     return [];
   }
 
-  const replies: EngineReply[] = [];
-  for (let index = 0; index < buttons.length; index += 3) {
-    const first = index === 0;
-    replies.push(
-      buttonReply(
-        first ? (extras.body ?? REQUIRED_INTERACTIVE_BODY) : "More options.",
-        buttons.slice(index, index + 3),
-        {
-          header: first ? extras.header : undefined,
-          footer: first ? extras.footer : undefined,
-        },
-      ),
-    );
+  if (options.length <= 3) {
+    return [
+      buttonReply(extras.body ?? REQUIRED_INTERACTIVE_BODY, options, {
+        header: extras.header,
+        footer: extras.footer,
+      }),
+    ];
   }
-  return replies;
+
+  return [
+    listReply(extras.body ?? REQUIRED_INTERACTIVE_BODY, options, {
+      header: extras.header,
+      footer: extras.footer,
+      button: extras.button ?? "Choose",
+    }),
+  ];
 }
 
 export function interactiveFallbackText(message: WhatsAppInteractiveMessage): string {
@@ -61,25 +79,6 @@ export function interactiveFallbackText(message: WhatsAppInteractiveMessage): st
   }
   const options = labels.map((title, index) => `${index + 1} — ${title}`).join("\n");
   return body ? `${body}\n\n${options}` : options;
-}
-
-export function listReply(
-  body: string,
-  rows: WhatsAppListRow[],
-  button = "Open menu",
-): EngineReply {
-  const visible = rows
-    .slice(0, 10)
-    .map((row, index) => `${index + 1} — ${row.title}`)
-    .join("\n");
-  const message: WhatsAppInteractiveMessage = {
-    body: `${body}\n\n${visible}`,
-    list: {
-      button,
-      sections: [{ title: "Menu", rows: rows.slice(0, 10) }],
-    },
-  };
-  return { kind: "interactive", message };
 }
 
 export function confirmReply(body: string): EngineReply {

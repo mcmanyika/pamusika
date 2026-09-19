@@ -188,24 +188,28 @@ describe("conversation engine", () => {
       choiceId: "buyer",
     });
     expect(result.session.current_state).toBe("CUSTOMER_MENU");
+    expect(result.replies).toHaveLength(1);
     expect(
-      result.replies[0]?.kind === "interactive" && result.replies[0].message.header,
-    ).toBe("Buyer menu");
-    expect(
-      result.replies.flatMap((reply) =>
-        reply.kind === "interactive" ? (reply.message.buttons ?? []) : [],
-      ),
-    ).toEqual([
-      { id: "1", title: "🔎 Find Products" },
-      { id: "2", title: "📂 Browse Categories" },
-      { id: "3", title: "📍 Vendors Near Me" },
-      { id: "4", title: "📦 My Orders" },
-      { id: "5", title: "❓ Help / Support" },
-      { id: "menu", title: "🏠 Main Menu" },
-    ]);
-    expect(result.replies.every((reply) => reply.kind === "interactive" && !reply.message.list)).toBe(
-      true,
-    );
+      result.replies[0]?.kind === "interactive" && result.replies[0].message,
+    ).toMatchObject({
+      header: "Buyer menu",
+      list: {
+        button: "Choose",
+        sections: [
+          {
+            title: "Menu",
+            rows: [
+              { id: "1", title: "🔎 Find Products" },
+              { id: "2", title: "📂 Browse Categories" },
+              { id: "3", title: "📍 Vendors Near Me" },
+              { id: "4", title: "📦 My Orders" },
+              { id: "5", title: "❓ Help / Support" },
+              { id: "menu", title: "🏠 Main Menu" },
+            ],
+          },
+        ],
+      },
+    });
   });
 
   it("returns to the main menu from buyer and vendor menus", async () => {
@@ -266,13 +270,9 @@ describe("conversation engine", () => {
       choiceId: "vendor",
     });
     expect(vendor.session.current_state).toBe("VENDOR_MENU");
+    expect(vendor.replies).toHaveLength(1);
     expect(
-      vendor.replies[0]?.kind === "interactive" && vendor.replies[0].message.header,
-    ).toBe("Vendor menu");
-    expect(
-      vendor.replies.flatMap((reply) =>
-        reply.kind === "interactive" ? (reply.message.buttons ?? []) : [],
-      ),
+      vendor.replies[0]?.kind === "interactive" && vendor.replies[0].message.list?.sections[0]?.rows,
     ).toEqual(
       expect.arrayContaining([
         { id: "1", title: "➕ Sell a Product" },

@@ -1,5 +1,5 @@
 import { moneyString, parseDecimal } from "@/lib/commerce/money";
-import { buttonReply, menuButtonReplies } from "@/lib/conversation/replies";
+import { buttonReply, singleMenuReplies } from "@/lib/conversation/replies";
 import { PRODUCT_UNITS } from "@/types/commerce";
 import type { Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
@@ -109,21 +109,21 @@ export function mainMenuReply(): EngineReply {
 }
 
 export function vendorMenuReplies(): EngineReply[] {
-  return menuButtonReplies(VENDOR_MENU_BUTTONS, {
+  return singleMenuReplies(VENDOR_MENU_BUTTONS, {
     header: "Vendor menu",
-    footer: "Tap a button to continue",
+    footer: "Tap Choose to continue",
   });
 }
 
 export function customerMenuReplies(): EngineReply[] {
-  return menuButtonReplies(CUSTOMER_MENU_BUTTONS, {
+  return singleMenuReplies(CUSTOMER_MENU_BUTTONS, {
     header: "Buyer menu",
-    footer: "Tap a button to continue",
+    footer: "Tap Choose to continue",
   });
 }
 
 export function helpReplies(): EngineReply[] {
-  return menuButtonReplies(HELP_MENU_BUTTONS, {
+  return singleMenuReplies(HELP_MENU_BUTTONS, {
     header: "PaySell Help",
     body: helpText(),
     footer: "Tap a button to continue",
@@ -131,33 +131,33 @@ export function helpReplies(): EngineReply[] {
 }
 
 export function categoryMenuReplies(categories: Array<{ name: string }>): EngineReply[] {
-  return menuButtonReplies(
+  return singleMenuReplies(
     categories.slice(0, 10).map((category, index) => ({
       id: String(index + 1),
       title: category.name,
     })),
     {
       header: "What do you sell?",
-      footer: "Tap a category",
+      footer: "Tap Choose to continue",
     },
   );
 }
 
 export function browseCategoryMenuReplies(categories: Array<{ name: string }>): EngineReply[] {
-  return menuButtonReplies(
+  return singleMenuReplies(
     categories.slice(0, 10).map((category, index) => ({
       id: String(index + 1),
       title: category.name,
     })),
     {
       header: "Browse categories",
-      footer: "Tap a category",
+      footer: "Tap Choose to continue",
     },
   );
 }
 
 export function languageMenuReplies(): EngineReply[] {
-  return menuButtonReplies(
+  return singleMenuReplies(
     LANGUAGES.map((language, index) => ({
       id: String(index + 1),
       title: language.label,
@@ -170,14 +170,14 @@ export function languageMenuReplies(): EngineReply[] {
 }
 
 export function unitMenuReplies(): EngineReply[] {
-  return menuButtonReplies(
+  return singleMenuReplies(
     PRODUCT_UNITS.map((unit, index) => ({
       id: String(index + 1),
       title: unit,
     })),
     {
       header: "What unit?",
-      footer: "Tap a unit",
+      footer: "Tap Choose to continue",
     },
   );
 }
