@@ -220,6 +220,19 @@ CREATE TABLE IF NOT EXISTS public.order_items (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS public.ratings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL REFERENCES public.orders (id) ON DELETE RESTRICT,
+  rater_type text NOT NULL CHECK (rater_type IN ('CUSTOMER', 'VENDOR')),
+  rater_id uuid NOT NULL,
+  ratee_type text NOT NULL CHECK (ratee_type IN ('CUSTOMER', 'VENDOR')),
+  ratee_id uuid NOT NULL,
+  score smallint NOT NULL CHECK (score BETWEEN 1 AND 5),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (order_id, rater_type),
+  CHECK (rater_type <> ratee_type)
+);
+
 CREATE TABLE IF NOT EXISTS public.conversation_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   phone_number text NOT NULL,
@@ -318,6 +331,9 @@ CREATE INDEX IF NOT EXISTS orders_created_at_idx ON public.orders (created_at DE
 
 CREATE INDEX IF NOT EXISTS order_items_order_id_idx ON public.order_items (order_id);
 CREATE INDEX IF NOT EXISTS order_items_product_id_idx ON public.order_items (product_id);
+
+CREATE INDEX IF NOT EXISTS ratings_order_id_idx ON public.ratings (order_id);
+CREATE INDEX IF NOT EXISTS ratings_ratee_idx ON public.ratings (ratee_type, ratee_id);
 
 CREATE UNIQUE INDEX IF NOT EXISTS conversation_sessions_one_active_per_phone_idx
   ON public.conversation_sessions (phone_number)
@@ -545,6 +561,7 @@ ALTER TABLE public.referrals ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.message_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
@@ -561,6 +578,7 @@ ALTER TABLE public.referrals FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.products FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.orders FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.ratings FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_sessions FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.message_logs FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets FORCE ROW LEVEL SECURITY;
@@ -716,6 +734,11 @@ CREATE POLICY order_items_update_commerce
   USING (public.can_manage_commerce())
   WITH CHECK (public.can_manage_commerce());
 
+DROP POLICY IF EXISTS ratings_select_staff ON public.ratings;
+CREATE POLICY ratings_select_staff
+  ON public.ratings FOR SELECT TO authenticated
+  USING (public.is_staff());
+
 DROP POLICY IF EXISTS conversation_sessions_select_ops ON public.conversation_sessions;
 CREATE POLICY conversation_sessions_select_ops
   ON public.conversation_sessions FOR SELECT TO authenticated
@@ -771,6 +794,7 @@ REVOKE ALL ON TABLE public.referrals FROM anon;
 REVOKE ALL ON TABLE public.products FROM anon;
 REVOKE ALL ON TABLE public.orders FROM anon;
 REVOKE ALL ON TABLE public.order_items FROM anon;
+REVOKE ALL ON TABLE public.ratings FROM anon;
 REVOKE ALL ON TABLE public.conversation_sessions FROM anon;
 REVOKE ALL ON TABLE public.message_logs FROM anon;
 REVOKE ALL ON TABLE public.support_tickets FROM anon;
@@ -787,6 +811,7 @@ GRANT SELECT ON TABLE public.referrals TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.products TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.orders TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.order_items TO authenticated;
+GRANT SELECT ON TABLE public.ratings TO authenticated;
 GRANT SELECT ON TABLE public.conversation_sessions TO authenticated;
 GRANT SELECT ON TABLE public.message_logs TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.support_tickets TO authenticated;

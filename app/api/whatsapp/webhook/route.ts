@@ -148,6 +148,7 @@ export async function POST(request: Request) {
       orders: commerce.orders,
       support: commerce.support,
       referrals: commerce.referrals,
+      ratings: commerce.ratings,
       intent: createOpenAIIntentInterpreter(),
     });
     const sender = new WhatsAppSender(createWhatsAppClient(), logs);

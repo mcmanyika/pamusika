@@ -88,10 +88,13 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
     if (!vendor) {
       return landingFor();
     }
+    const rating = deps.ratings
+      ? await deps.ratings.summaryFor("VENDOR", vendor.id)
+      : { average: 0, count: 0 };
     return {
       state: "VENDOR_MENU",
       context: {},
-      replies: [textReply(vendorProfileText(vendor))],
+      replies: [textReply(vendorProfileText(vendor, rating))],
     };
   }
 

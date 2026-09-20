@@ -287,7 +287,7 @@ describe("conversation engine", () => {
   });
 
   it("lets a customer search, order, and a vendor complete the sale", async () => {
-    const { engine, products, orders } = createConversationHarness();
+    const { engine, products, orders, ratings } = createConversationHarness();
     const vendor = { phoneNumber: "+263771234567", waId: "263771234567" };
     const buyer = { phoneNumber: "+263772222222", waId: "263772222222" };
 
@@ -348,10 +348,27 @@ describe("conversation engine", () => {
       readied.replies[0]?.kind === "interactive"
         ? readied.replies[0].message.buttons?.[0]
         : null;
-    await say(engine, "COMPLETE", { ...vendor, choiceId: completeButton?.id });
+    const completed = await say(engine, "COMPLETE", { ...vendor, choiceId: completeButton?.id });
 
     expect(orders[0]?.status).toBe("COMPLETED");
     expect(products[0]?.quantity).toBe("17");
+    expect(completed.session.current_state).toBe("RATE_ORDER");
+    expect(
+      completed.replies[0]?.kind === "interactive" && completed.replies[0].message.header,
+    ).toBe("Rate the buyer");
+    expect(completed.notifications[0]?.phoneNumber).toBe(buyer.phoneNumber);
+
+    const vendorRated = await say(engine, "5", vendor);
+    expect(vendorRated.session.current_state).toBe("VENDOR_MENU");
+    expect(ratings).toHaveLength(1);
+    expect(ratings[0]?.rater_type).toBe("VENDOR");
+    expect(ratings[0]?.score).toBe(5);
+
+    const buyerRated = await say(engine, "4", buyer);
+    expect(buyerRated.session.current_state).toBe("CUSTOMER_MENU");
+    expect(ratings).toHaveLength(2);
+    expect(ratings[1]?.rater_type).toBe("CUSTOMER");
+    expect(ratings[1]?.score).toBe(4);
   });
 
   it("lets a buyer save more than one delivery address", async () => {

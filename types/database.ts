@@ -153,6 +153,16 @@ export type Database = {
         total: string;
         created_at: string;
       }>;
+      ratings: TableDefinition<{
+        id: string;
+        order_id: string;
+        rater_type: string;
+        rater_id: string;
+        ratee_type: string;
+        ratee_id: string;
+        score: number;
+        created_at: string;
+      }>;
       conversation_sessions: TableDefinition<{
         id: string;
         phone_number: string;
@@ -273,6 +283,7 @@ export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Product = Database["public"]["Tables"]["products"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"];
 export type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];
+export type Rating = Database["public"]["Tables"]["ratings"]["Row"];
 export type ConversationSession =
   Database["public"]["Tables"]["conversation_sessions"]["Row"];
 export type MessageLog = Database["public"]["Tables"]["message_logs"]["Row"];

@@ -4,7 +4,7 @@ import { PRODUCT_UNITS } from "@/types/commerce";
 import type { CustomerAddress, Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
 import type { ProductSearchHit } from "@/lib/services/product.service";
-import type { OrderDraft, ProductDraft, RegistrationDraft } from "@/types/conversation";
+import type { OrderDraft, ProductDraft, RatingDraft, RegistrationDraft } from "@/types/conversation";
 import type { EngineReply } from "@/types/whatsapp";
 
 export const COPY = {
@@ -67,6 +67,9 @@ export const COPY = {
   referralInvalid: "I could not find that referral code.",
   referralSelf: "You cannot use your own referral code.",
   referralRegistered: "Referral codes can only be used when you first join PaySell.",
+  invalidRating: "Reply with a score from 1 to 5, or SKIP.",
+  ratingThanks: "Thanks for the rating.",
+  ratingSkipped: "No problem. You can keep using PaySell.",
 } as const;
 
 export const LANGUAGES = [
@@ -263,13 +266,19 @@ ${cards.join("\n\n")}${more}
 Reply MENU to go back.`;
 }
 
-export function vendorProfileText(vendor: Vendor): string {
+export function vendorProfileText(
+  vendor: Vendor,
+  rating?: { average: number; count: number },
+): string {
   const location = [vendor.area, vendor.city].filter(Boolean).join(", ") || "Not set";
+  const ratingLine =
+    rating && rating.count > 0 ? `Rating: ${rating.average}/5 · ${rating.count}` : "Rating: none yet";
   return `${vendor.vendor_code}
 
 ${vendor.business_name ?? "Your business"}
 ${location}
 Status: ${vendor.status}
+${ratingLine}
 
 Reply MENU to go back.`;
 }
@@ -401,6 +410,40 @@ export function customerOrderUpdateText(order: OrderRecord, headline: string): s
 
 Order ${order.order_number}
 Status: ${order.status}`;
+}
+
+const RATING_CHOICES = [
+  { id: "1", title: "1 — Poor" },
+  { id: "2", title: "2 — Fair" },
+  { id: "3", title: "3 — Good" },
+  { id: "4", title: "4 — Great" },
+  { id: "5", title: "5 — Excellent" },
+  { id: "skip", title: "Skip" },
+] as const;
+
+export function ratingPromptText(draft: RatingDraft, headline?: string): string {
+  const who = draft.rateeName || (draft.raterType === "VENDOR" ? "this buyer" : "this vendor");
+  const order = draft.orderNumber ? `Order ${draft.orderNumber}` : "This order";
+  const intro = headline ? `${headline}\n\n` : "";
+  return `${intro}${order} is complete.
+
+How was ${who}?
+1 = poor, 5 = excellent`;
+}
+
+export function ratingPromptReplies(draft: RatingDraft, headline?: string): EngineReply[] {
+  return singleMenuReplies([...RATING_CHOICES], {
+    header: draft.raterType === "VENDOR" ? "Rate the buyer" : "Rate the vendor",
+    body: ratingPromptText(draft, headline),
+    footer: "Tap a score or Skip",
+    button: "Rate",
+  });
+}
+
+export function ratingThanksText(score: number): string {
+  return `${COPY.ratingThanks}
+
+You gave ${score} out of 5.`;
 }
 
 export function orderQuantityPrompt(name: string, unit: string, available: number): string {

@@ -6,6 +6,7 @@ import { CommerceError } from "@/lib/commerce/errors";
 import type { IdempotencyStore } from "@/lib/services/idempotency";
 import type { CustomerStore } from "@/lib/services/customer.service";
 import type { ReferralOwnerLookup, ReferralStore } from "@/lib/services/referral.service";
+import type { RatingStore } from "@/lib/services/rating.service";
 import type { OrderRecord, OrderStore } from "@/lib/services/order.service";
 import type { ProductSearchHit, ProductStore } from "@/lib/services/product.service";
 import type { VendorStore } from "@/lib/services/vendor.service";
@@ -16,6 +17,7 @@ import type {
   CustomerAddress,
   Category,
   Product,
+  Rating,
   Referral,
   ReferralCode,
   SupportTicket,
@@ -468,6 +470,31 @@ export function createMemoryReferralStore(
     },
     async listAll() {
       return referrals.slice().sort((left, right) => right.created_at.localeCompare(left.created_at));
+    },
+  };
+}
+
+export function createMemoryRatingStore(seed: Rating[] = []): RatingStore {
+  const ratings = seed;
+
+  return {
+    async findByOrderAndRater(orderId, raterType) {
+      return (
+        ratings.find((row) => row.order_id === orderId && row.rater_type === raterType) ?? null
+      );
+    },
+    async listByOrder(orderId) {
+      return ratings.filter((row) => row.order_id === orderId);
+    },
+    async listByRatee(rateeType, rateeId) {
+      return ratings.filter((row) => row.ratee_type === rateeType && row.ratee_id === rateeId);
+    },
+    async create(rating) {
+      if (ratings.some((row) => row.order_id === rating.order_id && row.rater_type === rating.rater_type)) {
+        throw new CommerceError("STORE_ERROR", "duplicate rating");
+      }
+      ratings.push(rating);
+      return rating;
     },
   };
 }

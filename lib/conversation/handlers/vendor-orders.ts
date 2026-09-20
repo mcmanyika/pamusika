@@ -6,6 +6,7 @@ import {
   vendorSalesText,
 } from "@/lib/conversation/copy";
 import { withVendorOrders } from "@/lib/conversation/context";
+import { startCompletedOrderRatings } from "@/lib/conversation/handlers/rating";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { orderButtonsReply, textReply } from "@/lib/conversation/replies";
 import type { OrderAction } from "@/lib/conversation/input";
@@ -133,12 +134,37 @@ export async function handleVendorOrderAction(
   }
 
   const customer = await deps.customers.getById(updated.customer_id);
+  const vendor = await deps.vendors.getById(updated.vendor_id);
+  const headline = customerHeadline(action.action);
   const notifications: EngineNotification[] = [];
-  if (customer) {
+
+  if (action.action === "complete") {
+    const rating = await startCompletedOrderRatings(deps, updated, {
+      vendor,
+      customer,
+      headline,
+    });
+    if (rating.buyerNotification) {
+      notifications.push(rating.buyerNotification);
+    } else if (customer) {
+      notifications.push({
+        waId: toWhatsAppId(customer.whatsapp_number),
+        phoneNumber: customer.whatsapp_number,
+        replies: [textReply(customerOrderUpdateText(updated, headline))],
+      });
+    }
+
+    if (rating.vendor) {
+      return {
+        ...rating.vendor,
+        notifications,
+      };
+    }
+  } else if (customer) {
     notifications.push({
       waId: toWhatsAppId(customer.whatsapp_number),
       phoneNumber: customer.whatsapp_number,
-      replies: [textReply(customerOrderUpdateText(updated, customerHeadline(action.action)))],
+      replies: [textReply(customerOrderUpdateText(updated, headline))],
     });
   }
 

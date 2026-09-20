@@ -388,13 +388,28 @@ export async function loadVendorDetail(client: CommerceClient, vendorId: string)
     return null;
   }
 
-  const [products, orders, tickets, events, categories] = await Promise.all([
+  const [products, orders, tickets, events, categories, ratingRows] = await Promise.all([
     allProducts(client),
     loadOrders(client, {}),
     allTickets(client),
     allEvents(client),
     allCategories(client),
+    client
+      .from("ratings")
+      .select("score")
+      .eq("ratee_type", "VENDOR")
+      .eq("ratee_id", vendorId)
+      .then(({ data, error }) => {
+        if (error) throwStoreError(error);
+        return data ?? [];
+      }),
   ]);
+
+  const ratingCount = ratingRows.length;
+  const ratingAverage =
+    ratingCount === 0
+      ? 0
+      : Math.round((ratingRows.reduce((sum, row) => sum + row.score, 0) / ratingCount) * 10) / 10;
 
   return {
     vendor,
@@ -405,6 +420,7 @@ export async function loadVendorDetail(client: CommerceClient, vendorId: string)
     orders: orders.filter((order) => order.vendor_id === vendorId),
     tickets: tickets.filter((ticket) => ticket.user_id === vendorId),
     events: events.filter((event) => event.user_id === vendorId).slice(0, 20),
+    rating: { average: ratingAverage, count: ratingCount },
   };
 }
 

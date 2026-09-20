@@ -6,6 +6,7 @@ import { OrderService } from "@/lib/services/order.service";
 import { ProductService } from "@/lib/services/product.service";
 import { SupportService } from "@/lib/services/support.service";
 import { ReferralService } from "@/lib/services/referral.service";
+import { RatingService } from "@/lib/services/rating.service";
 import { VendorService } from "@/lib/services/vendor.service";
 import type { ConversationEngineDeps } from "@/lib/conversation/handlers/types";
 import type { OrderRecord } from "@/lib/services/order.service";
@@ -14,6 +15,7 @@ import type {
   Customer,
   CustomerAddress,
   Product,
+  Rating,
   Referral,
   ReferralCode,
   SupportTicket,
@@ -25,6 +27,7 @@ import {
   createMemoryCustomerStore,
   createMemoryReferralOwners,
   createMemoryReferralStore,
+  createMemoryRatingStore,
   createMemoryIdempotencyStore,
   createMemoryOrderStore,
   createMemoryProductStore,
@@ -75,6 +78,7 @@ export function createConversationHarness(options?: {
   const addresses: CustomerAddress[] = [];
   const referralCodes: ReferralCode[] = [];
   const referrals: Referral[] = [];
+  const ratings: Rating[] = [];
   const orders: OrderRecord[] = [];
   const tickets: SupportTicket[] = [];
   const categories = [testCategory(), testCategory("cat-other", "Other")];
@@ -104,6 +108,14 @@ export function createConversationHarness(options?: {
       createMemoryReferralStore(referralCodes, referrals),
       createMemoryReferralOwners(customers, vendors),
     ),
+    ratings: new RatingService(
+      createMemoryRatingStore(ratings),
+      {
+        async getById(id) {
+          return orders.find((order) => order.id === id) ?? null;
+        },
+      },
+    ),
     intent: options?.intent,
   });
 
@@ -115,6 +127,7 @@ export function createConversationHarness(options?: {
     addresses,
     referralCodes,
     referrals,
+    ratings,
     orders,
     categories,
     tickets,

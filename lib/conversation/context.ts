@@ -3,6 +3,7 @@ import type {
   AddressDraft,
   OrderDraft,
   ProductDraft,
+  RatingDraft,
   RegistrationDraft,
   SearchDraft,
   SessionContext,
@@ -78,6 +79,7 @@ export function parseSessionContext(value: Json | null | undefined): SessionCont
     order: parseOrder(record.order),
     vendorOrders: parseVendorOrders(record.vendorOrders),
     address: parseAddress(record.address),
+    rating: parseRating(record.rating),
   };
 }
 
@@ -205,6 +207,29 @@ export function withAddress(context: SessionContext, patch: AddressDraft): Sessi
   return {
     ...context,
     address: { ...context.address, ...patch },
+  };
+}
+
+function parseRating(value: unknown): RatingDraft | undefined {
+  const record = asRecord(value);
+  if (!record) {
+    return undefined;
+  }
+
+  const raterType = asString(record.raterType);
+
+  return {
+    orderId: asString(record.orderId),
+    orderNumber: asString(record.orderNumber),
+    raterType: raterType === "CUSTOMER" || raterType === "VENDOR" ? raterType : undefined,
+    rateeName: asString(record.rateeName),
+  };
+}
+
+export function withRating(context: SessionContext, patch: RatingDraft): SessionContext {
+  return {
+    ...context,
+    rating: { ...context.rating, ...patch },
   };
 }
 

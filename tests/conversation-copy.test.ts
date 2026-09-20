@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { productListText, searchResultsReply, searchResultsText } from "@/lib/conversation/copy";
+import {
+  productListText,
+  ratingPromptReplies,
+  searchResultsReply,
+  searchResultsText,
+} from "@/lib/conversation/copy";
 import type { ProductSearchHit } from "@/lib/services/product.service";
 import type { Product } from "@/types/database";
 
@@ -80,5 +85,27 @@ describe("WhatsApp product listings", () => {
         ],
       },
     });
+  });
+
+  it("offers a 1-5 rating picker after a completed order", () => {
+    const replies = ratingPromptReplies({
+      orderId: "order-1",
+      orderNumber: "PS-10001",
+      raterType: "CUSTOMER",
+      rateeName: "Tariro Fresh Produce",
+    });
+
+    expect(replies[0]).toMatchObject({
+      kind: "interactive",
+      message: {
+        header: "Rate the vendor",
+        list: {
+          button: "Rate",
+        },
+      },
+    });
+    expect(replies[0]?.kind === "interactive" && replies[0].message.body).toContain(
+      "How was Tariro Fresh Produce?",
+    );
   });
 });

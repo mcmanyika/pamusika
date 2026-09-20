@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CATEGORY_STATUSES, PRODUCT_UNITS } from "@/types/commerce";
+import { CATEGORY_STATUSES, PRODUCT_UNITS, RATING_RATER_TYPES } from "@/types/commerce";
 
 export const registerVendorSchema = z.object({
   whatsappNumber: z.string().min(7),
@@ -99,6 +99,12 @@ export const applyReferralSchema = z.object({
   code: z.string().trim().min(4),
 });
 
+export const submitRatingSchema = z.object({
+  orderId: z.string().min(1),
+  raterType: z.enum(RATING_RATER_TYPES),
+  score: z.number().int().min(1).max(5),
+});
+
 export type CreateCustomerAddressInput = z.input<typeof createCustomerAddressSchema>;
 export type ApplyReferralInput = z.input<typeof applyReferralSchema>;
 export type CreateCategoryInput = z.input<typeof createCategorySchema>;
@@ -106,3 +112,4 @@ export type UpdateCategoryInput = z.input<typeof updateCategorySchema>;
 export type CreateProductDraftInput = z.input<typeof createProductDraftSchema>;
 export type SearchProductsInput = z.input<typeof searchProductsSchema>;
 export type CreateOrderInput = z.input<typeof createOrderSchema>;
+export type SubmitRatingInput = z.input<typeof submitRatingSchema>;

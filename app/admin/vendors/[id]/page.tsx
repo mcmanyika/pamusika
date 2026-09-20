@@ -28,7 +28,7 @@ export default async function AdminVendorDetailPage({
     notFound();
   }
 
-  const { vendor, categoryName, products, orders, tickets, events } = detail;
+  const { vendor, categoryName, products, orders, tickets, events, rating } = detail;
   const completed = orders.filter((order) => order.status === "COMPLETED");
   const gmv = completed.reduce((sum, order) => sum + parseDecimal(order.total, "total"), 0);
 
@@ -80,6 +80,10 @@ export default async function AdminVendorDetailPage({
           <p className="mt-1 font-medium">{completed.length}</p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Gross merchandise</p>
           <p className="mt-1 font-medium">{formatMoney(gmv)}</p>
+          <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Buyer rating</p>
+          <p className="mt-1 font-medium">
+            {rating.count > 0 ? `${rating.average}/5 · ${rating.count}` : "—"}
+          </p>
         </Card>
       </div>
 

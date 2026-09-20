@@ -286,7 +286,13 @@ describe("intent routing", () => {
 
     expect(orders).toHaveLength(0);
     expect(result.session.current_state).toBe("SEARCH_RESULTS");
-    expect(result.replies[0]?.kind === "text" && result.replies[0].text).toMatch(/Tomatoes/);
+    expect(
+      result.replies[0]?.kind === "interactive"
+        ? result.replies[0].message.body
+        : result.replies[0]?.kind === "text"
+          ? result.replies[0].text
+          : "",
+    ).toMatch(/Tomatoes/);
   });
 
   it("starts vendor registration and keeps a pending listing for an unknown seller", async () => {

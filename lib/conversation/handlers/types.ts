@@ -9,6 +9,7 @@ import type { OrderService } from "@/lib/services/order.service";
 import type { ProductService } from "@/lib/services/product.service";
 import type { SupportService } from "@/lib/services/support.service";
 import type { ReferralService } from "@/lib/services/referral.service";
+import type { RatingService } from "@/lib/services/rating.service";
 import type { VendorService } from "@/lib/services/vendor.service";
 import type { IntentInterpreter } from "@/lib/openai/intent";
 import type { NormalizedInput } from "@/lib/conversation/input";
@@ -27,6 +28,7 @@ export type ConversationEngineDeps = {
   orders: OrderService;
   support?: SupportService;
   referrals?: ReferralService;
+  ratings?: RatingService;
   intent?: IntentInterpreter;
 };
 

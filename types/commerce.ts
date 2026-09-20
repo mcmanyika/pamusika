@@ -120,3 +120,15 @@ export type ReferralOwnerType = (typeof REFERRAL_OWNER_TYPES)[number];
 export const REFERRAL_STATUSES = ["PENDING", "QUALIFIED", "REJECTED"] as const;
 
 export type ReferralStatus = (typeof REFERRAL_STATUSES)[number];
+
+export const RATING_RATER_TYPES = ["CUSTOMER", "VENDOR"] as const;
+
+export type RatingRaterType = (typeof RATING_RATER_TYPES)[number];
+
+export const RATING_SCORES = [1, 2, 3, 4, 5] as const;
+
+export type RatingScore = (typeof RATING_SCORES)[number];
+
+export function isRatingScore(value: number): value is RatingScore {
+  return RATING_SCORES.includes(value as RatingScore);
+}

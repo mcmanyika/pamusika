@@ -27,6 +27,7 @@ export const CONVERSATION_STATES = [
   "ORDER_QUANTITY",
   "ORDER_CONFIRM",
   "ORDER_WAITING_VENDOR",
+  "RATE_ORDER",
   "SUPPORT",
 ] as const;
 
@@ -92,6 +93,13 @@ export type AddressDraft = {
   area?: string;
 };
 
+export type RatingDraft = {
+  orderId?: string;
+  orderNumber?: string;
+  raterType?: "CUSTOMER" | "VENDOR";
+  rateeName?: string;
+};
+
 export type SessionContext = {
   registration?: RegistrationDraft;
   product?: ProductDraft;
@@ -100,6 +108,7 @@ export type SessionContext = {
   order?: OrderDraft;
   vendorOrders?: VendorOrderDraft;
   address?: AddressDraft;
+  rating?: RatingDraft;
 };
 
 export const MESSAGE_DIRECTIONS = ["INBOUND", "OUTBOUND"] as const;

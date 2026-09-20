@@ -2,6 +2,7 @@ import { handleAddProduct } from "@/lib/conversation/handlers/add-product";
 import { handleBuyer } from "@/lib/conversation/handlers/buyer";
 import { handleMainMenu } from "@/lib/conversation/handlers/main-menu";
 import { handleSupport } from "@/lib/conversation/handlers/shared";
+import { handleRating } from "@/lib/conversation/handlers/rating";
 import { handleVendorMenu } from "@/lib/conversation/handlers/vendor-menu";
 import { handleVendorRegistration } from "@/lib/conversation/handlers/vendor-registration";
 import type { ConversationHandler } from "@/lib/conversation/handlers/types";
@@ -68,6 +69,10 @@ export function getHandler(state: ConversationState): ConversationHandler {
 
   if (BUYER_STATES.has(state)) {
     return handleBuyer;
+  }
+
+  if (state === "RATE_ORDER") {
+    return handleRating;
   }
 
   if (state === "SUPPORT") {
