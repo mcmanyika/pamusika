@@ -92,30 +92,30 @@ What would you like to do?`;
 }
 
 const VENDOR_MENU_BUTTONS = [
-  { id: "1", title: "➕ Sell a Product" },
-  { id: "2", title: "📦 My Products" },
-  { id: "3", title: "🛒 Customer Orders" },
-  { id: "4", title: "📊 My Sales" },
-  { id: "5", title: "🏪 My Business" },
-  { id: "6", title: "❓ Help / Support" },
-  { id: "7", title: "📣 Invite" },
-  { id: "menu", title: "🏠 Main Menu" },
+  { id: "1", title: "Sell a product" },
+  { id: "2", title: "My products" },
+  { id: "3", title: "Customer orders" },
+  { id: "4", title: "My sales" },
+  { id: "5", title: "My business" },
+  { id: "6", title: "Help / Support" },
+  { id: "7", title: "Invite" },
+  { id: "menu", title: "Main menu" },
 ];
 
 const CUSTOMER_MENU_BUTTONS = [
-  { id: "1", title: "🔎 Find Products" },
-  { id: "2", title: "📂 Browse Categories" },
-  { id: "3", title: "📍 Vendors Near Me" },
-  { id: "4", title: "📦 My Orders" },
-  { id: "5", title: "📍 My Addresses" },
-  { id: "6", title: "❓ Help / Support" },
-  { id: "7", title: "📣 Invite" },
-  { id: "menu", title: "🏠 Main Menu" },
+  { id: "1", title: "Find products" },
+  { id: "2", title: "Browse categories" },
+  { id: "3", title: "Vendors near me" },
+  { id: "4", title: "My orders" },
+  { id: "5", title: "My addresses" },
+  { id: "6", title: "Help / Support" },
+  { id: "7", title: "Invite" },
+  { id: "menu", title: "Main menu" },
 ];
 
 const HELP_MENU_BUTTONS = [
-  { id: "1", title: "🏠 Main Menu" },
-  { id: "2", title: "👤 Talk to Support" },
+  { id: "1", title: "Main menu" },
+  { id: "2", title: "Talk to support" },
 ];
 
 export function mainMenuReply(): EngineReply {
@@ -259,7 +259,7 @@ export function productListText(products: Product[]): string {
   const more =
     products.length > shown.length ? `\nShowing ${shown.length} of ${products.length}.` : "";
 
-  return `🛒 *Your products* · ${products.length}
+  return `*Your products* · ${products.length}
 
 ${cards.join("\n\n")}${more}
 
@@ -292,7 +292,7 @@ export function searchResultsText(results: ProductSearchHit[]): string {
     ]);
   });
 
-  return `🔎 *Products found* · ${results.length}
+  return `*Products found* · ${results.length}
 
 ${cards.join("\n\n")}`;
 }
@@ -309,7 +309,7 @@ export function searchResultsReply(results: ProductSearchHit[]): EngineReply[] {
       .filter(Boolean)
       .join(" · "),
   }));
-  rows.push({ id: "menu", title: "🏠 Main Menu", description: "Go back" });
+  rows.push({ id: "menu", title: "Main menu", description: "Go back" });
 
   return singleMenuReplies(rows, {
     header: "Products found",
@@ -471,9 +471,9 @@ export function addressListReplies(addresses: CustomerAddress[]): EngineReply[] 
   }));
 
   if (addresses.length < 8) {
-    rows.push({ id: "add", title: "➕ Add address", description: "Save a new delivery address" });
+    rows.push({ id: "add", title: "Add address", description: "Save a new delivery address" });
   }
-  rows.push({ id: "menu", title: "🏠 Main Menu", description: "Go back to Buyer or Vendor" });
+  rows.push({ id: "menu", title: "Main menu", description: "Go back to Buyer or Vendor" });
 
   return singleMenuReplies(rows, {
     header: "My addresses",

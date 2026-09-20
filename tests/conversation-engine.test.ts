@@ -202,14 +202,14 @@ describe("conversation engine", () => {
           {
             title: "Menu",
             rows: [
-              { id: "1", title: "🔎 Find Products" },
-              { id: "2", title: "📂 Browse Categories" },
-              { id: "3", title: "📍 Vendors Near Me" },
-              { id: "4", title: "📦 My Orders" },
-              { id: "5", title: "📍 My Addresses" },
-              { id: "6", title: "❓ Help / Support" },
-              { id: "7", title: "📣 Invite" },
-              { id: "menu", title: "🏠 Main Menu" },
+              { id: "1", title: "Find products" },
+              { id: "2", title: "Browse categories" },
+              { id: "3", title: "Vendors near me" },
+              { id: "4", title: "My orders" },
+              { id: "5", title: "My addresses" },
+              { id: "6", title: "Help / Support" },
+              { id: "7", title: "Invite" },
+              { id: "menu", title: "Main menu" },
             ],
           },
         ],
@@ -280,8 +280,8 @@ describe("conversation engine", () => {
       vendor.replies[0]?.kind === "interactive" && vendor.replies[0].message.list?.sections[0]?.rows,
     ).toEqual(
       expect.arrayContaining([
-        { id: "1", title: "➕ Sell a Product" },
-        { id: "menu", title: "🏠 Main Menu" },
+        { id: "1", title: "Sell a product" },
+        { id: "menu", title: "Main menu" },
       ]),
     );
   });

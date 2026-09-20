@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { NotificationBell } from "@/components/admin/notification-bell";
+import { NavIcon } from "@/components/admin/nav-icon";
 import { ADMIN_NAV } from "@/components/admin/nav";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/auth/actions";
@@ -51,12 +52,13 @@ export function AdminShell({
                   href={item.href}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "rounded-lg px-3 py-2 text-sm font-medium",
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium",
                     active
                       ? "bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]"
                       : "text-[var(--color-ink-muted)] hover:bg-[var(--color-surface-muted)] hover:text-[var(--color-ink)]",
                   )}
                 >
+                  <NavIcon name={item.icon} />
                   {item.label}
                 </Link>
               );

@@ -51,7 +51,7 @@ describe("WhatsApp product listings", () => {
       product({ id: "prod-2", name: "Onions", quantity: "8", unit: "bag", price: "12", status: "PAUSED" }),
     ]);
 
-    expect(text).toContain("🛒 *Your products* · 2");
+    expect(text).toContain("*Your products* · 2");
     expect(text).toContain("*1. Tomatoes*");
     expect(text).toContain("20 kg · $1.00/kg");
     expect(text).toContain("Active");
@@ -66,7 +66,7 @@ describe("WhatsApp product listings", () => {
     const text = searchResultsText(results);
     const replies = searchResultsReply(results);
 
-    expect(text).toContain("🔎 *Products found* · 2");
+    expect(text).toContain("*Products found* · 2");
     expect(text).toContain("*1. Tomatoes*");
     expect(text).toContain("$1.00/kg · 20 kg left");
     expect(text).toContain("Tariro Fresh Produce · Mbare");
@@ -81,7 +81,7 @@ describe("WhatsApp product listings", () => {
         buttons: [
           { id: "1", title: "Tomatoes" },
           { id: "2", title: "Rape" },
-          { id: "menu", title: "🏠 Main Menu" },
+          { id: "menu", title: "Main menu" },
         ],
       },
     });
