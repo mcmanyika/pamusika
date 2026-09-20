@@ -3,12 +3,15 @@ import { notFound } from "next/navigation";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { VendorActions } from "@/components/admin/vendor-actions";
+import { VendorVerificationActions } from "@/components/admin/verification-actions";
+import { WhatsAppCompose } from "@/components/admin/whatsapp-compose";
+import { WhatsAppLink } from "@/components/admin/whatsapp-link";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/layout/page-header";
-import { displayPhone, formatDate, formatMoney, locationLabel, personName } from "@/lib/admin/format";
+import { formatDate, formatMoney, locationLabel, personName, vendorAddressLabel } from "@/lib/admin/format";
 import { loadVendorDetail } from "@/lib/admin/queries";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { canManageCommerce, canViewPii } from "@/lib/auth/roles";
+import { canMessageUsers, canModerateAccounts, canVerifyUsers } from "@/lib/auth/roles";
 import { parseDecimal } from "@/lib/commerce/money";
 import { createClient } from "@/lib/supabase/server";
 
@@ -35,9 +38,13 @@ export default async function AdminVendorDetailPage({
         title={vendor.business_name ?? vendor.vendor_code}
         description={`${vendor.vendor_code} · ${locationLabel(vendor.area, vendor.city)}`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <StatusBadge>{vendor.status}</StatusBadge>
-          {canManageCommerce(profile.role) ? (
+          <StatusBadge>{vendor.verification_status}</StatusBadge>
+          {canVerifyUsers(profile.role) ? (
+            <VendorVerificationActions id={vendor.id} status={vendor.verification_status} />
+          ) : null}
+          {canModerateAccounts(profile.role) ? (
             <VendorActions id={vendor.id} status={vendor.status} />
           ) : null}
         </div>
@@ -45,16 +52,28 @@ export default async function AdminVendorDetailPage({
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
-          <p className="text-sm text-[var(--color-ink-muted)]">Owner</p>
+          <p className="text-sm text-[var(--color-ink-muted)]">Contact name</p>
           <p className="mt-1 font-medium">{personName(vendor.first_name, vendor.last_name)}</p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">WhatsApp</p>
-          <p className="mt-1 font-medium">{displayPhone(vendor.whatsapp_number, canViewPii(profile.role))}</p>
+          <p className="mt-1 font-medium">
+            <WhatsAppLink phone={vendor.whatsapp_number} />
+          </p>
+          <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Address</p>
+          <p className="mt-1 font-medium">{vendorAddressLabel(vendor)}</p>
+          {canMessageUsers(profile.role) ? (
+            <WhatsAppCompose
+              phone={vendor.whatsapp_number}
+              name={personName(vendor.first_name, vendor.last_name)}
+            />
+          ) : null}
         </Card>
         <Card>
           <p className="text-sm text-[var(--color-ink-muted)]">Category</p>
           <p className="mt-1 font-medium">{categoryName ?? "—"}</p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Verification</p>
-          <p className="mt-1 font-medium">{vendor.verification_status}</p>
+          <p className="mt-1 font-medium">
+            <StatusBadge>{vendor.verification_status}</StatusBadge>
+          </p>
         </Card>
         <Card>
           <p className="text-sm text-[var(--color-ink-muted)]">Completed sales</p>

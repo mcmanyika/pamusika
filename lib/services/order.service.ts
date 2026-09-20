@@ -122,6 +122,9 @@ export class OrderService {
     if (!customer) {
       throw new CommerceError("CUSTOMER_NOT_FOUND", "Customer not found");
     }
+    if (customer.status !== "ACTIVE") {
+      throw new CommerceError("CUSTOMER_INACTIVE", "This buyer account is not active");
+    }
 
     const loaded = await this.requireSellableProduct(parsed.productId);
     const numbers = parseProductNumbers(loaded.product);

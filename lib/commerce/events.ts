@@ -1,6 +1,11 @@
 export const ANALYTICS_EVENTS = [
   "VENDOR_REGISTRATION_STARTED",
   "VENDOR_REGISTERED",
+  "VENDOR_ACTIVATED",
+  "VENDOR_SUSPENDED",
+  "CUSTOMER_CREATED",
+  "CUSTOMER_ACTIVATED",
+  "CUSTOMER_SUSPENDED",
   "PRODUCT_CREATED",
   "PRODUCT_SEARCHED",
   "PRODUCT_VIEWED",
@@ -17,3 +22,30 @@ export const ANALYTICS_EVENTS = [
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
+
+export const STAFF_NOTIFICATION_EVENTS = [
+  "VENDOR_REGISTERED",
+  "VENDOR_ACTIVATED",
+  "VENDOR_SUSPENDED",
+  "CUSTOMER_CREATED",
+  "CUSTOMER_ACTIVATED",
+  "CUSTOMER_SUSPENDED",
+  "PRODUCT_CREATED",
+  "ORDER_CONFIRMED",
+  "ORDER_ACCEPTED",
+  "ORDER_DECLINED",
+  "ORDER_READY",
+  "ORDER_COMPLETED",
+  "ORDER_CANCELLED",
+  "SUPPORT_REQUESTED",
+  "REFERRAL_APPLIED",
+  "REFERRAL_QUALIFIED",
+] as const satisfies readonly AnalyticsEventName[];
+
+export type StaffNotificationEvent = (typeof STAFF_NOTIFICATION_EVENTS)[number];
+
+export function isStaffNotificationEvent(
+  value: string,
+): value is StaffNotificationEvent {
+  return (STAFF_NOTIFICATION_EVENTS as readonly string[]).includes(value);
+}

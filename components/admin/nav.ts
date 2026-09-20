@@ -2,6 +2,7 @@ export const ADMIN_NAV = [
   { href: "/admin", label: "Overview" },
   { href: "/admin/vendors", label: "Vendors" },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/categories", label: "Categories" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/customers", label: "Customers" },
   { href: "/admin/referrals", label: "Referrals" },

@@ -1,8 +1,11 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { setVendorStatusAction } from "@/lib/admin/actions";
+import { nextAccountStatus } from "@/types/commerce";
 
 export function VendorActions({ id, status }: { id: string; status: string }) {
-  const next = status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
+  const next = nextAccountStatus(status);
   const label = next === "SUSPENDED" ? "Suspend" : "Activate";
 
   return (

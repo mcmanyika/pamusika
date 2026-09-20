@@ -15,6 +15,7 @@ import {
   type SearchProductsInput,
 } from "@/lib/validation/commerce";
 import type { Product, Vendor } from "@/types/database";
+import type { ProductStatus } from "@/types/commerce";
 
 export type ProductSearchHit = Product & {
   vendor: Pick<Vendor, "id" | "vendor_code" | "business_name" | "area" | "city" | "status">;
@@ -151,6 +152,17 @@ export class ProductService {
   async remove(productId: string): Promise<Product> {
     await this.requireProduct(productId);
     return this.store.update(productId, { status: "REMOVED" });
+  }
+
+  async setStatus(productId: string, status: ProductStatus): Promise<Product> {
+    const product = await this.requireProduct(productId);
+    if (status === "ACTIVE") {
+      const quantity = parseDecimal(product.quantity, "quantity");
+      return this.store.update(productId, {
+        status: quantity > 0 ? "ACTIVE" : "OUT_OF_STOCK",
+      });
+    }
+    return this.store.update(productId, { status });
   }
 
   async listByVendor(vendorId: string): Promise<Product[]> {

@@ -54,6 +54,8 @@ function parseProduct(value: unknown): ProductDraft | undefined {
 
   return {
     name: asString(record.name),
+    categoryId: asString(record.categoryId),
+    categoryName: asString(record.categoryName),
     quantity: asNumber(record.quantity),
     unit: asString(record.unit),
     price: asNumber(record.price),

@@ -1,4 +1,4 @@
-import { moneyString, parseDecimal } from "@/lib/commerce/money";
+import { moneyString, parseDecimal, quantityString } from "@/lib/commerce/money";
 import { buttonReply, singleMenuReplies } from "@/lib/conversation/replies";
 import { PRODUCT_UNITS } from "@/types/commerce";
 import type { CustomerAddress, Product, Vendor } from "@/types/database";
@@ -13,6 +13,10 @@ export const COPY = {
   tryAgain: "I didn't catch that. Please try again, or reply MENU.",
   vendorInactive:
     "Your PaySell business is not active yet, so you cannot list products. Reply HELP if you need support.",
+  vendorSuspended:
+    "Your PaySell vendor account is suspended. Reply HELP if you need support.",
+  customerSuspended:
+    "Your PaySell buyer account is suspended. Reply HELP if you need support.",
   photoLater:
     "Photo uploads are coming next. I'll continue without a photo for now.",
   askName: "What is your name?",
@@ -171,6 +175,19 @@ export function browseCategoryMenuReplies(categories: Array<{ name: string }>): 
   );
 }
 
+export function productCategoryMenuReplies(categories: Array<{ name: string }>): EngineReply[] {
+  return singleMenuReplies(
+    categories.slice(0, 10).map((category, index) => ({
+      id: String(index + 1),
+      title: category.name,
+    })),
+    {
+      header: "Product category",
+      footer: "Tap Choose to continue",
+    },
+  );
+}
+
 export function languageMenuReplies(): EngineReply[] {
   return singleMenuReplies(
     LANGUAGES.map((language, index) => ({
@@ -217,6 +234,7 @@ export function productConfirmText(draft: ProductDraft): string {
   return `Please confirm:
 
 ${draft.name ?? "Product"}
+${draft.categoryName ?? "Uncategorised"}
 ${quantity} ${unit}
 $${price}/${unit}
 
@@ -228,13 +246,19 @@ export function productListText(products: Product[]): string {
     return COPY.noProducts;
   }
 
-  const lines = products.slice(0, 10).map((product, index) => {
-    return `${index + 1}. ${product.name} — ${product.quantity} ${product.unit} — $${moneyString(parseDecimal(product.price, "price"))}/${product.unit} — ${product.status}`;
-  });
+  const shown = products.slice(0, 10);
+  const cards = shown.map((product, index) =>
+    productCard(index + 1, product.name, [
+      `${stockLabel(product.quantity, product.unit)} · ${priceLabel(product.price, product.unit)}`,
+      statusLabel(product.status),
+    ]),
+  );
+  const more =
+    products.length > shown.length ? `\nShowing ${shown.length} of ${products.length}.` : "";
 
-  return `Your products
+  return `🛒 *Your products* · ${products.length}
 
-${lines.join("\n")}
+${cards.join("\n\n")}${more}
 
 Reply MENU to go back.`;
 }
@@ -251,16 +275,39 @@ Reply MENU to go back.`;
 }
 
 export function searchResultsText(results: ProductSearchHit[]): string {
-  const lines = results.map((hit, index) => {
-    const place = [hit.vendor.area, hit.vendor.business_name].filter(Boolean).join(" · ");
-    return `${index + 1}. ${hit.name} — $${moneyString(parseDecimal(hit.price, "price"))}/${hit.unit} — ${hit.quantity} ${hit.unit}\n   ${place}`;
+  const cards = results.slice(0, 10).map((hit, index) => {
+    const place = [hit.vendor.business_name, hit.vendor.area].filter(Boolean).join(" · ");
+    return productCard(index + 1, hit.name, [
+      `${priceLabel(hit.price, hit.unit)} · ${stockLabel(hit.quantity, hit.unit)} left`,
+      place,
+    ]);
   });
 
-  return `Here's what I found:
+  return `🔎 *Products found* · ${results.length}
 
-${lines.join("\n")}
+${cards.join("\n\n")}`;
+}
 
-Reply with a number to order, or MENU to go back.`;
+export function searchResultsReply(results: ProductSearchHit[]): EngineReply[] {
+  const rows = results.slice(0, 10).map((hit, index) => ({
+    id: String(index + 1),
+    title: hit.name,
+    description: [
+      priceLabel(hit.price, hit.unit),
+      `${stockLabel(hit.quantity, hit.unit)} left`,
+      hit.vendor.area || hit.vendor.business_name || "",
+    ]
+      .filter(Boolean)
+      .join(" · "),
+  }));
+  rows.push({ id: "menu", title: "🏠 Main Menu", description: "Go back" });
+
+  return singleMenuReplies(rows, {
+    header: "Products found",
+    body: searchResultsText(results),
+    footer: "Tap a product to order",
+    button: "View products",
+  });
 }
 
 export function orderSummaryText(draft: OrderDraft): string {
@@ -424,4 +471,33 @@ They should send:
 REF ${code}
 
 People referred: ${qualified}${total !== qualified ? ` qualified / ${total} total` : ""}`;
+}
+
+function productCard(index: number, title: string, details: string[]): string {
+  return [`*${index}. ${title}*`, ...details.filter(Boolean)].join("\n");
+}
+
+function priceLabel(value: string | number, unit: string): string {
+  return `$${moneyString(parseDecimal(value, "price"))}/${unit}`;
+}
+
+function stockLabel(value: string | number, unit: string): string {
+  return `${quantityString(parseDecimal(value, "quantity"))} ${unit}`;
+}
+
+function statusLabel(status: string): string {
+  switch (status) {
+    case "ACTIVE":
+      return "Active";
+    case "OUT_OF_STOCK":
+      return "Out of stock";
+    case "PAUSED":
+      return "Paused";
+    case "DRAFT":
+      return "Draft";
+    case "REMOVED":
+      return "Removed";
+    default:
+      return status;
+  }
 }

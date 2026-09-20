@@ -347,8 +347,41 @@ export function createMemoryCategoryStore(seed: Category[] = []): CategoryStore 
         .slice()
         .sort((left, right) => left.sort_order - right.sort_order);
     },
+    async listAll() {
+      return categories.slice().sort((left, right) => left.sort_order - right.sort_order);
+    },
     async findById(id) {
       return categories.find((category) => category.id === id) ?? null;
+    },
+    async findBySlug(slug) {
+      return categories.find((category) => category.slug === slug) ?? null;
+    },
+    async create(category) {
+      if (categories.some((row) => row.slug === category.slug)) {
+        throw new CommerceError("STORE_ERROR", "duplicate category slug");
+      }
+      categories.push(category);
+      return category;
+    },
+    async update(id, patch) {
+      const index = categories.findIndex((category) => category.id === id);
+      if (index === -1) {
+        throw new CommerceError("CATEGORY_NOT_FOUND", "Category not found");
+      }
+      categories[index] = {
+        ...categories[index],
+        ...patch,
+        updated_at: new Date().toISOString(),
+      };
+      return categories[index];
+    },
+    async delete(id) {
+      const index = categories.findIndex((category) => category.id === id);
+      if (index === -1) {
+        throw new CommerceError("CATEGORY_NOT_FOUND", "Category not found");
+      }
+      const [removed] = categories.splice(index, 1);
+      return removed!;
     },
   };
 }

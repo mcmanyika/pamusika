@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PRODUCT_UNITS } from "@/types/commerce";
+import { CATEGORY_STATUSES, PRODUCT_UNITS } from "@/types/commerce";
 
 export const registerVendorSchema = z.object({
   whatsappNumber: z.string().min(7),
@@ -63,6 +63,17 @@ export const createProductDraftSchema = z.object({
   idempotencyKey: z.string().min(8).optional(),
 });
 
+export const createCategorySchema = z.object({
+  name: z.string().trim().min(2, "Category name is required").max(24),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
+export const updateCategorySchema = z.object({
+  name: z.string().trim().min(2).max(24).optional(),
+  status: z.enum(CATEGORY_STATUSES).optional(),
+  sortOrder: z.number().int().min(0).optional(),
+});
+
 export const searchProductsSchema = z.object({
   query: z.string().trim().optional(),
   categoryId: z.string().min(1).optional(),
@@ -90,6 +101,8 @@ export const applyReferralSchema = z.object({
 
 export type CreateCustomerAddressInput = z.input<typeof createCustomerAddressSchema>;
 export type ApplyReferralInput = z.input<typeof applyReferralSchema>;
+export type CreateCategoryInput = z.input<typeof createCategorySchema>;
+export type UpdateCategoryInput = z.input<typeof updateCategorySchema>;
 export type CreateProductDraftInput = z.input<typeof createProductDraftSchema>;
 export type SearchProductsInput = z.input<typeof searchProductsSchema>;
 export type CreateOrderInput = z.input<typeof createOrderSchema>;

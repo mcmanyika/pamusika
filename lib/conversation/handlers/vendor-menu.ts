@@ -45,6 +45,15 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
       };
     }
 
+    const categories = await deps.categories.listActive();
+    if (categories.length === 0) {
+      return {
+        state: "VENDOR_MENU",
+        context: {},
+        replies: [textReply(COPY.noCategories)],
+      };
+    }
+
     return {
       state: "ADD_PRODUCT_NAME",
       context: {},

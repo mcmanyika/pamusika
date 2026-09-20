@@ -58,6 +58,8 @@ export type Database = {
         city: string | null;
         area: string | null;
         preferred_language: string;
+        verification_status: string;
+        status: string;
         created_at: string;
         updated_at: string;
       }>;

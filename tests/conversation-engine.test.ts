@@ -85,6 +85,7 @@ describe("conversation engine", () => {
     await say(engine, "YES", { choiceId: "yes" });
     await say(engine, "1");
     await say(engine, "Tomatoes");
+    await say(engine, "1");
     await say(engine, "20");
     await say(engine, "1");
     await say(engine, "$1");
@@ -97,6 +98,7 @@ describe("conversation engine", () => {
     expect(products).toHaveLength(1);
     expect(products[0]?.status).toBe("ACTIVE");
     expect(products[0]?.name).toBe("Tomatoes");
+    expect(products[0]?.category_id).toBe("cat-produce");
     expect(published.session.current_state).toBe("VENDOR_MENU");
   });
 
@@ -112,6 +114,7 @@ describe("conversation engine", () => {
     await say(engine, "YES", { choiceId: "yes" });
     await say(engine, "1");
     await say(engine, "Tomatoes");
+    await say(engine, "1");
     await say(engine, "20");
     await say(engine, "kg");
     await say(engine, "1");
@@ -134,6 +137,7 @@ describe("conversation engine", () => {
     await say(engine, "YES", { choiceId: "yes" });
     await say(engine, "1");
     await say(engine, "Tomatoes");
+    await say(engine, "1");
     await say(engine, "20");
     await say(engine, "1");
     await say(engine, "1");
@@ -296,6 +300,7 @@ describe("conversation engine", () => {
     await say(engine, "YES", { ...vendor, choiceId: "yes" });
     await say(engine, "1", vendor);
     await say(engine, "Tomatoes", vendor);
+    await say(engine, "1", vendor);
     await say(engine, "20", vendor);
     await say(engine, "kg", vendor);
     await say(engine, "1", vendor);
@@ -422,5 +427,45 @@ describe("conversation engine", () => {
     expect(tickets[0]?.status).toBe("OPEN");
     expect(tickets[0]?.phone_number).toBe("+263771234567");
     expect(result.replies[0]?.kind === "text" && result.replies[0].text).toMatch(/support person/i);
+  });
+
+  it("blocks a suspended buyer from using WhatsApp commerce", async () => {
+    const { engine, customers } = createConversationHarness();
+    await say(engine, "Buyer", { type: "interactive", choiceId: "buyer" });
+    await say(engine, "5");
+    await say(engine, "Add address", { type: "interactive", choiceId: "add" });
+    await say(engine, "Home", { type: "interactive", choiceId: "home" });
+    await say(engine, "Stand 14, Mbare Musika");
+    await say(engine, "Harare, Mbare");
+    await say(engine, "YES", { choiceId: "yes" });
+    expect(customers[0]?.status).toBe("ACTIVE");
+    customers[0]!.status = "SUSPENDED";
+
+    const result = await say(engine, "1");
+    expect(result.replies[0]).toMatchObject({
+      kind: "text",
+      text: "Your PaySell buyer account is suspended. Reply HELP if you need support.",
+    });
+
+    const help = await say(engine, "help");
+    expect(help.session.current_state).toBe("SUPPORT");
+  });
+
+  it("blocks a suspended vendor from using WhatsApp commerce", async () => {
+    const { engine, vendors } = createConversationHarness();
+    await say(engine, "2");
+    await say(engine, "Tariro");
+    await say(engine, "Tariro Fresh Produce");
+    await say(engine, "1");
+    await say(engine, "Harare, Mbare");
+    await say(engine, "1");
+    await say(engine, "YES", { type: "interactive", choiceId: "yes" });
+    vendors[0]!.status = "SUSPENDED";
+
+    const result = await say(engine, "1");
+    expect(result.replies[0]).toMatchObject({
+      kind: "text",
+      text: "Your PaySell vendor account is suspended. Reply HELP if you need support.",
+    });
   });
 });

@@ -162,4 +162,31 @@ describe("product creation", () => {
     expect(removed.status).toBe("REMOVED");
     expect(await service.getById(product.id)).toMatchObject({ id: product.id, status: "REMOVED" });
   });
+
+  it("lets staff set a product status, and treats empty stock as out of stock", async () => {
+    const vendors = [activeVendor()];
+    const store = createMemoryProductStore({ vendors });
+    const service = new ProductService(
+      store,
+      trackedAnalytics().tracker,
+      createMemoryIdempotencyStore(),
+    );
+    const { product } = await service.createDraft({
+      vendorId: vendors[0]!.id,
+      name: "Tomatoes",
+      quantity: 20,
+      unit: "kg",
+      price: 1,
+    });
+
+    const paused = await service.setStatus(product.id, "PAUSED");
+    expect(paused.status).toBe("PAUSED");
+
+    const active = await service.setStatus(product.id, "ACTIVE");
+    expect(active.status).toBe("ACTIVE");
+
+    await store.update(product.id, { quantity: "0" });
+    const marked = await service.setStatus(product.id, "ACTIVE");
+    expect(marked.status).toBe("OUT_OF_STOCK");
+  });
 });

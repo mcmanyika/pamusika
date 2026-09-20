@@ -40,6 +40,8 @@ const customer: Customer = {
   city: "Harare",
   area: "Mbare",
   preferred_language: "en",
+  verification_status: "UNVERIFIED",
+  status: "ACTIVE",
   created_at: now,
   updated_at: now,
 };
@@ -166,5 +168,26 @@ describe("order workflow", () => {
 
     expect(second.created).toBe(false);
     expect(second.order.id).toBe(first.order.id);
+  });
+
+  it("does not create an order for a suspended buyer", async () => {
+    const products = [product()];
+    const service = new OrderService(
+      createMemoryOrderStore({
+        vendors: [vendor],
+        customers: [{ ...customer, status: "SUSPENDED" }],
+        products,
+      }),
+      trackedAnalytics().tracker,
+      createMemoryIdempotencyStore(),
+    );
+
+    await expect(
+      service.create({
+        customerId: "customer-1",
+        productId: "product-1",
+        quantity: 1,
+      }),
+    ).rejects.toMatchObject({ code: "CUSTOMER_INACTIVE" });
   });
 });

@@ -1,6 +1,8 @@
 import { CommerceError } from "@/lib/commerce/errors";
 import { normalizePhoneNumber } from "@/lib/commerce/phone";
 import { throwStoreError } from "@/lib/services/idempotency";
+import type { AnalyticsTracker } from "@/lib/services/analytics.types";
+import { silentAnalytics } from "@/lib/services/analytics.types";
 import type { CommerceClient } from "@/lib/supabase/database";
 import {
   createCustomerAddressSchema,
@@ -9,6 +11,7 @@ import {
   type UpsertCustomerInput,
 } from "@/lib/validation/commerce";
 import type { Customer, CustomerAddress } from "@/types/database";
+import type { CustomerStatus, VerificationStatus } from "@/types/commerce";
 
 export const MAX_CUSTOMER_ADDRESSES = 8;
 
@@ -24,7 +27,10 @@ export type CustomerStore = {
 };
 
 export class CustomerService {
-  constructor(private readonly store: CustomerStore) {}
+  constructor(
+    private readonly store: CustomerStore,
+    private readonly analytics: AnalyticsTracker = silentAnalytics,
+  ) {}
 
   async getOrCreate(input: UpsertCustomerInput): Promise<{
     customer: Customer;
@@ -65,8 +71,16 @@ export class CustomerService {
       city: parsed.city ?? null,
       area: parsed.area ?? null,
       preferred_language: parsed.preferredLanguage,
+      verification_status: "UNVERIFIED",
+      status: "ACTIVE",
       created_at: now,
       updated_at: now,
+    });
+
+    await this.analytics.track({
+      eventName: "CUSTOMER_CREATED",
+      userType: "CUSTOMER",
+      userId: customer.id,
     });
 
     return { customer, created: true };
@@ -84,6 +98,39 @@ export class CustomerService {
     const customer = await this.store.findById(customerId);
     if (!customer) {
       throw new CommerceError("CUSTOMER_NOT_FOUND", "Customer not found");
+    }
+    return customer;
+  }
+
+  async setVerification(customerId: string, status: VerificationStatus): Promise<Customer> {
+    await this.requireCustomer(customerId);
+    return this.store.update(customerId, { verification_status: status });
+  }
+
+  async setStatus(customerId: string, status: CustomerStatus): Promise<Customer> {
+    const current = await this.requireCustomer(customerId);
+    const updated = await this.store.update(customerId, { status });
+    if (status !== current.status && status === "ACTIVE") {
+      await this.analytics.track({
+        eventName: "CUSTOMER_ACTIVATED",
+        userType: "CUSTOMER",
+        userId: customerId,
+      });
+    }
+    if (status !== current.status && status === "SUSPENDED") {
+      await this.analytics.track({
+        eventName: "CUSTOMER_SUSPENDED",
+        userType: "CUSTOMER",
+        userId: customerId,
+      });
+    }
+    return updated;
+  }
+
+  async requireActive(customerId: string): Promise<Customer> {
+    const customer = await this.requireCustomer(customerId);
+    if (customer.status !== "ACTIVE") {
+      throw new CommerceError("CUSTOMER_INACTIVE", "This buyer account is not active");
     }
     return customer;
   }
@@ -148,7 +195,10 @@ export class CustomerService {
   }
 }
 
-export function createCustomerService(client: CommerceClient): CustomerService {
+export function createCustomerService(
+  client: CommerceClient,
+  analytics: AnalyticsTracker = silentAnalytics,
+): CustomerService {
   const store: CustomerStore = {
     async findById(id) {
       const { data, error } = await client
@@ -227,5 +277,5 @@ export function createCustomerService(client: CommerceClient): CustomerService {
     },
   };
 
-  return new CustomerService(store);
+  return new CustomerService(store, analytics);
 }

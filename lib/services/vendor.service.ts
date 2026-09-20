@@ -15,7 +15,7 @@ import {
   type UpdateVendorInput,
 } from "@/lib/validation/commerce";
 import type { Vendor } from "@/types/database";
-import type { VendorStatus } from "@/types/commerce";
+import type { VendorStatus, VerificationStatus } from "@/types/commerce";
 
 export type VendorStore = {
   findById(id: string): Promise<Vendor | null>;
@@ -147,8 +147,28 @@ export class VendorService {
   }
 
   async setStatus(vendorId: string, status: VendorStatus): Promise<Vendor> {
+    const current = await this.requireVendor(vendorId);
+    const updated = await this.store.update(vendorId, { status });
+    if (status !== current.status && status === "ACTIVE") {
+      await this.analytics.track({
+        eventName: "VENDOR_ACTIVATED",
+        userType: "VENDOR",
+        userId: vendorId,
+      });
+    }
+    if (status !== current.status && status === "SUSPENDED") {
+      await this.analytics.track({
+        eventName: "VENDOR_SUSPENDED",
+        userType: "VENDOR",
+        userId: vendorId,
+      });
+    }
+    return updated;
+  }
+
+  async setVerification(vendorId: string, status: VerificationStatus): Promise<Vendor> {
     await this.requireVendor(vendorId);
-    return this.store.update(vendorId, { status });
+    return this.store.update(vendorId, { verification_status: status });
   }
 
   async getById(vendorId: string): Promise<Vendor | null> {

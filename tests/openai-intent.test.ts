@@ -200,13 +200,17 @@ describe("intent routing", () => {
     const confirm = await say(engine, "I have 20kg tomatoes at $1");
 
     expect(products).toHaveLength(0);
-    expect(confirm.session.current_state).toBe("ADD_PRODUCT_CONFIRM");
-    expect(confirm.replies.some((reply) => reply.kind === "interactive")).toBe(true);
+    expect(confirm.session.current_state).toBe("ADD_PRODUCT_CATEGORY");
+
+    const ready = await say(engine, "1");
+    expect(ready.session.current_state).toBe("ADD_PRODUCT_CONFIRM");
+    expect(ready.replies.some((reply) => reply.kind === "interactive")).toBe(true);
 
     const published = await say(engine, "YES", { choiceId: "yes" });
     expect(products).toHaveLength(1);
     expect(products[0]?.name).toBe("Tomatoes");
     expect(products[0]?.status).toBe("ACTIVE");
+    expect(products[0]?.category_id).toBe("cat-produce");
     expect(published.session.current_state).toBe("VENDOR_MENU");
   });
 
@@ -225,7 +229,7 @@ describe("intent routing", () => {
     const result = await say(engine, "I want to sell 20 tomatoes");
 
     expect(products).toHaveLength(0);
-    expect(result.session.current_state).toBe("ADD_PRODUCT_UNIT");
+    expect(result.session.current_state).toBe("ADD_PRODUCT_CATEGORY");
   });
 
   it("falls back to the menu when confidence is low", async () => {
@@ -269,6 +273,7 @@ describe("intent routing", () => {
     await registerVendor(engine, vendor);
     await say(engine, "1", vendor);
     await say(engine, "Tomatoes", vendor);
+    await say(engine, "1", vendor);
     await say(engine, "20", vendor);
     await say(engine, "kg", vendor);
     await say(engine, "1", vendor);
@@ -315,9 +320,13 @@ describe("intent routing", () => {
     expect(vendors).toHaveLength(1);
     expect(vendors[0]?.status).toBe("ACTIVE");
     expect(products).toHaveLength(0);
-    expect(registered.session.current_state).toBe("ADD_PRODUCT_CONFIRM");
+    expect(registered.session.current_state).toBe("ADD_PRODUCT_CATEGORY");
 
-    await say(engine, "YES", { choiceId: "yes" });
+    const pickedCategory = await say(engine, "1");
+    expect(pickedCategory.session.current_state).toBe("ADD_PRODUCT_CONFIRM");
+
+    const confirmListing = await say(engine, "YES", { choiceId: "yes" });
+    expect(confirmListing.session.current_state).toBe("VENDOR_MENU");
     expect(products).toHaveLength(1);
     expect(products[0]?.name).toBe("Tomatoes");
   });

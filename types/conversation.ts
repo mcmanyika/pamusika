@@ -9,6 +9,7 @@ export const CONVERSATION_STATES = [
   "VENDOR_REGISTRATION_CONFIRM",
   "VENDOR_MENU",
   "ADD_PRODUCT_NAME",
+  "ADD_PRODUCT_CATEGORY",
   "ADD_PRODUCT_QUANTITY",
   "ADD_PRODUCT_UNIT",
   "ADD_PRODUCT_PRICE",
@@ -48,6 +49,8 @@ export type RegistrationDraft = {
 
 export type ProductDraft = {
   name?: string;
+  categoryId?: string;
+  categoryName?: string;
   quantity?: number;
   unit?: string;
   price?: number;

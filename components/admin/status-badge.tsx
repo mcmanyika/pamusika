@@ -19,6 +19,7 @@ const TONE: Record<string, string> = {
   SUSPENDED: "bg-red-100 text-red-800",
   INACTIVE: "bg-red-100 text-red-800",
   DECLINED: "bg-red-100 text-red-800",
+  REJECTED: "bg-red-100 text-red-800",
   CANCELLED: "bg-red-100 text-red-800",
   REMOVED: "bg-red-100 text-red-800",
   OUT_OF_STOCK: "bg-red-100 text-red-800",

@@ -7,7 +7,7 @@ import {
   helpReplies,
   orderQuantityPrompt,
   orderSummaryText,
-  searchResultsText,
+  searchResultsReply,
   vendorNewOrderText,
 } from "@/lib/conversation/copy";
 import { withOrder, withSearch } from "@/lib/conversation/context";
@@ -381,6 +381,6 @@ async function runSearch(
   return {
     state: "SEARCH_RESULTS",
     context: { search: { ...search, resultIds: results.map((hit) => hit.id) } },
-    replies: [textReply(searchResultsText(results))],
+    replies: searchResultsReply(results),
   };
 }

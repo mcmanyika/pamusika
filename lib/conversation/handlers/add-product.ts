@@ -1,10 +1,14 @@
 import { PRODUCT_UNITS } from "@/types/commerce";
-import { COPY, productConfirmText, unitMenuReplies } from "@/lib/conversation/copy";
+import { COPY, productCategoryMenuReplies, productConfirmText, unitMenuReplies } from "@/lib/conversation/copy";
 import { withProduct } from "@/lib/conversation/context";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import { parsePositiveNumber, parsePrice, parseUnit } from "@/lib/conversation/input";
 import { confirmReply, skipReply, textReply } from "@/lib/conversation/replies";
-import type { ConversationHandler, HandlerResult } from "@/lib/conversation/handlers/types";
+import type {
+  ConversationEngineDeps,
+  ConversationHandler,
+  HandlerResult,
+} from "@/lib/conversation/handlers/types";
 import type { ProductDraft } from "@/types/conversation";
 
 export const handleAddProduct: ConversationHandler = async (turn, deps) => {
@@ -34,11 +38,23 @@ export const handleAddProduct: ConversationHandler = async (turn, deps) => {
       };
     }
 
-    return {
-      state: "ADD_PRODUCT_QUANTITY",
-      context: withProduct(turn.context, { name }),
-      replies: [textReply(COPY.askQuantity)],
-    };
+    return continueProductDraft(withProduct(turn.context, { name }).product ?? { name }, deps);
+  }
+
+  if (state === "ADD_PRODUCT_CATEGORY") {
+    const picked = await pickProductCategory(turn.input.choice, deps);
+    if (!picked) {
+      return {
+        state: "ADD_PRODUCT_CATEGORY",
+        context: turn.context,
+        replies: [textReply(COPY.invalidCategory), ...(await productCategoryPrompt(deps))],
+      };
+    }
+
+    return continueProductDraft(
+      { ...draft, categoryId: picked.id, categoryName: picked.name },
+      deps,
+    );
   }
 
   if (state === "ADD_PRODUCT_QUANTITY") {
@@ -136,8 +152,8 @@ export const handleAddProduct: ConversationHandler = async (turn, deps) => {
         ? (draft.unit as (typeof PRODUCT_UNITS)[number])
         : "item",
       price: draft.price ?? 1,
-      categoryId: vendor.primary_category_id ?? undefined,
-      idempotencyKey: `product:${turn.session.id}:${draft.name}:${draft.quantity}:${draft.unit}:${draft.price}`,
+      categoryId: draft.categoryId ?? vendor.primary_category_id ?? undefined,
+      idempotencyKey: `product:${turn.session.id}:${draft.name}:${draft.categoryId}:${draft.quantity}:${draft.unit}:${draft.price}`,
     });
 
     const published = await deps.products.publish(created.product.id);
@@ -152,12 +168,31 @@ export const handleAddProduct: ConversationHandler = async (turn, deps) => {
   return landingFor("VENDOR");
 };
 
-export function continueProductDraft(draft: ProductDraft): HandlerResult {
+export async function continueProductDraft(
+  draft: ProductDraft,
+  deps: ConversationEngineDeps,
+): Promise<HandlerResult> {
   if (!draft.name) {
     return {
       state: "ADD_PRODUCT_NAME",
       context: { product: draft },
       replies: [textReply(COPY.askProductName)],
+    };
+  }
+
+  if (!draft.categoryId) {
+    const replies = await productCategoryPrompt(deps);
+    if (replies[0]?.kind === "text") {
+      return {
+        state: "VENDOR_MENU",
+        context: {},
+        replies,
+      };
+    }
+    return {
+      state: "ADD_PRODUCT_CATEGORY",
+      context: { product: draft },
+      replies,
     };
   }
 
@@ -195,4 +230,17 @@ function confirmProduct(draft: ProductDraft): HandlerResult {
     context: { product: draft },
     replies: [confirmReply(productConfirmText(draft))],
   };
+}
+
+async function pickProductCategory(choice: number | null, deps: ConversationEngineDeps) {
+  const categories = await deps.categories.listActive();
+  return categories[(choice ?? 0) - 1] ?? null;
+}
+
+async function productCategoryPrompt(deps: ConversationEngineDeps) {
+  const categories = await deps.categories.listActive();
+  if (categories.length === 0) {
+    return [textReply(COPY.noCategories)];
+  }
+  return productCategoryMenuReplies(categories);
 }

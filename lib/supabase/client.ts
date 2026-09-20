@@ -14,3 +14,14 @@ export function createClient() {
     env.supabasePublishableKey,
   );
 }
+
+export function tryCreateBrowserClient() {
+  const env = getEnv();
+  if (!env.isSupabaseBrowserConfigured) {
+    return null;
+  }
+  return createBrowserClient<Database>(
+    env.supabaseUrl,
+    env.supabasePublishableKey,
+  );
+}

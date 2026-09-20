@@ -40,10 +40,18 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
+export function whatsAppAuthFailedMessage(body: unknown): string {
+  const message = (body as GraphErrorBody | null)?.error?.message ?? "";
+  if (/session has expired|access token.*expir/i.test(message)) {
+    return "WhatsApp token expired. Generate a new token in Meta Developer and update META_WHATSAPP_ACCESS_TOKEN. Until then, use Open WhatsApp.";
+  }
+  return "Meta authentication failed";
+}
+
 function graphErrorMessage(body: unknown, fallback: string): string {
   const error = (body as GraphErrorBody | null)?.error;
   if (error?.code === 190 || error?.type === "OAuthException") {
-    return "Meta authentication failed";
+    return whatsAppAuthFailedMessage(body);
   }
   if (error?.message) {
     return error.message;
@@ -86,7 +94,7 @@ async function graphFetch(
 function assertOk(status: number, body: unknown, operation: string): void {
   if (status === 401 || status === 403) {
     logger.error({ operation, result: "auth_failed", status });
-    throw new WhatsAppError("AUTH_FAILED", "Meta authentication failed", status);
+    throw new WhatsAppError("AUTH_FAILED", whatsAppAuthFailedMessage(body), status);
   }
   if (status === 429) {
     logger.warn({ operation, result: "rate_limited", status });

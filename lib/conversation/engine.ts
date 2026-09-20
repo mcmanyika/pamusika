@@ -52,6 +52,23 @@ export class ConversationEngine {
 
     const input = normalizeInput(message);
     const context = parseSessionContext(session.context_json);
+    const suspendedCopy = await this.suspendedAccountCopy(identity);
+
+    if (suspendedCopy && input.help) {
+      const landed = showHelp();
+      session = await this.persist(session.id, landed, identity);
+      return { session, identity, replies: landed.replies, notifications: [] };
+    }
+
+    if (suspendedCopy) {
+      const blocked = {
+        state,
+        context,
+        replies: [textReply(suspendedCopy)],
+      };
+      session = await this.persist(session.id, blocked, identity);
+      return { session, identity, replies: blocked.replies, notifications: [] };
+    }
 
     if (input.menu && state !== "NEW") {
       const landed = landingFor(identity.userType);
@@ -173,6 +190,24 @@ export class ConversationEngine {
     }
 
     return { userType: "UNKNOWN", userId: null };
+  }
+
+  private async suspendedAccountCopy(identity: ConversationIdentity): Promise<string | null> {
+    if (identity.userType === "VENDOR" && identity.userId) {
+      const vendor = await this.deps.vendors.getById(identity.userId);
+      if (vendor && (vendor.status === "SUSPENDED" || vendor.status === "INACTIVE")) {
+        return COPY.vendorSuspended;
+      }
+    }
+
+    if (identity.userType === "CUSTOMER" && identity.userId) {
+      const customer = await this.deps.customers.getById(identity.userId);
+      if (customer?.status === "SUSPENDED") {
+        return COPY.customerSuspended;
+      }
+    }
+
+    return null;
   }
 }
 

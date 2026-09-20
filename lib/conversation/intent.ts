@@ -109,7 +109,7 @@ async function addProductFromIntent(
         replies: [textReply(COPY.vendorInactive)],
       };
     }
-    return continueProductDraft(draft);
+    return continueProductDraft(draft, deps);
   }
 
   if (turn.identity.userType === "CUSTOMER") {

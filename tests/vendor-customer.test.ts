@@ -27,6 +27,7 @@ describe("vendor registration", () => {
 
     expect(created).toBe(true);
     expect(vendor.status).toBe("PENDING");
+    expect(vendor.verification_status).toBe("UNVERIFIED");
     expect(vendor.vendor_code).toMatch(/^PS-HRE-\d{6}$/);
     expect(vendor.whatsapp_number).toBe("+263771234567");
     expect(events).toContain("VENDOR_REGISTRATION_STARTED");
@@ -34,6 +35,44 @@ describe("vendor registration", () => {
     const confirmed = await service.confirm(vendor.id);
     expect(confirmed.status).toBe("ACTIVE");
     expect(events).toContain("VENDOR_REGISTERED");
+  });
+
+  it("notifies staff when a vendor membership is suspended or reactivated", async () => {
+    const { events, tracker } = trackedAnalytics();
+    const service = new VendorService(
+      createMemoryVendorStore(),
+      tracker,
+      createMemoryIdempotencyStore(),
+    );
+    const { vendor } = await service.register({
+      whatsappNumber: "+263771234567",
+      firstName: "Tariro",
+      businessName: "Tariro Fresh Produce",
+    });
+    await service.confirm(vendor.id);
+    await service.setStatus(vendor.id, "SUSPENDED");
+    await service.setStatus(vendor.id, "ACTIVE");
+    expect(events).toContain("VENDOR_SUSPENDED");
+    expect(events).toContain("VENDOR_ACTIVATED");
+  });
+
+  it("lets staff verify or reject a vendor", async () => {
+    const service = new VendorService(
+      createMemoryVendorStore(),
+      trackedAnalytics().tracker,
+      createMemoryIdempotencyStore(),
+    );
+    const { vendor } = await service.register({
+      whatsappNumber: "+263771234567",
+      firstName: "Tariro",
+      businessName: "Tariro Fresh Produce",
+    });
+
+    const verified = await service.setVerification(vendor.id, "VERIFIED");
+    expect(verified.verification_status).toBe("VERIFIED");
+
+    const rejected = await service.setVerification(vendor.id, "REJECTED");
+    expect(rejected.verification_status).toBe("REJECTED");
   });
 
   it("is idempotent for the same WhatsApp number", async () => {
@@ -65,7 +104,8 @@ describe("vendor registration", () => {
 
 describe("customer onboarding", () => {
   it("creates a lightweight customer and reuses the same number", async () => {
-    const service = new CustomerService(createMemoryCustomerStore());
+    const { events, tracker } = trackedAnalytics();
+    const service = new CustomerService(createMemoryCustomerStore(), tracker);
 
     const first = await service.getOrCreate({
       whatsappNumber: "0770001111",
@@ -78,9 +118,12 @@ describe("customer onboarding", () => {
     });
 
     expect(first.created).toBe(true);
+    expect(first.customer.verification_status).toBe("UNVERIFIED");
+    expect(first.customer.status).toBe("ACTIVE");
     expect(second.created).toBe(false);
     expect(second.customer.id).toBe(first.customer.id);
     expect(second.customer.area).toBe("Mbare");
+    expect(events).toEqual(["CUSTOMER_CREATED"]);
   });
 
   it("stores multiple delivery addresses and keeps one default", async () => {
@@ -114,5 +157,34 @@ describe("customer onboarding", () => {
     expect(updated.is_default).toBe(true);
     expect(listed.find((address) => address.id === home.id)?.is_default).toBe(false);
     expect(listed.find((address) => address.id === work.id)?.is_default).toBe(true);
+  });
+
+  it("lets staff verify or reject a buyer", async () => {
+    const service = new CustomerService(createMemoryCustomerStore());
+    const { customer } = await service.getOrCreate({
+      whatsappNumber: "+263770001111",
+      displayName: "Chipo",
+    });
+
+    const verified = await service.setVerification(customer.id, "VERIFIED");
+    expect(verified.verification_status).toBe("VERIFIED");
+
+    const rejected = await service.setVerification(customer.id, "REJECTED");
+    expect(rejected.verification_status).toBe("REJECTED");
+  });
+
+  it("lets staff suspend or reactivate a buyer", async () => {
+    const { events, tracker } = trackedAnalytics();
+    const service = new CustomerService(createMemoryCustomerStore(), tracker);
+    const { customer } = await service.getOrCreate({
+      whatsappNumber: "+263770001111",
+      displayName: "Chipo",
+    });
+
+    const suspended = await service.setStatus(customer.id, "SUSPENDED");
+    expect(suspended.status).toBe("SUSPENDED");
+    const activated = await service.setStatus(customer.id, "ACTIVE");
+    expect(activated.status).toBe("ACTIVE");
+    expect(events).toEqual(["CUSTOMER_CREATED", "CUSTOMER_SUSPENDED", "CUSTOMER_ACTIVATED"]);
   });
 });

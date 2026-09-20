@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { NotificationBell } from "@/components/admin/notification-bell";
 import { ADMIN_NAV } from "@/components/admin/nav";
 import { Button } from "@/components/ui/button";
 import { logout } from "@/lib/auth/actions";
@@ -25,11 +26,11 @@ export function AdminShell({
   const displayName = fullName || email || "Staff";
 
   return (
-    <div className="min-h-full bg-[var(--color-canvas)]">
-      <div className="mx-auto flex min-h-full max-w-7xl">
+    <div className="h-svh overflow-hidden bg-[var(--color-canvas)]">
+      <div className="mx-auto flex h-full max-w-7xl">
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-20 w-64 border-r border-[var(--color-border)] bg-white p-4 md:static md:block",
+            "fixed inset-y-0 left-0 z-20 w-64 overflow-hidden border-r border-[var(--color-border)] bg-white p-4 md:static md:block md:h-full md:shrink-0",
             open ? "block" : "hidden md:block",
           )}
         >
@@ -63,8 +64,8 @@ export function AdminShell({
           </nav>
         </aside>
 
-        <div className="flex min-h-full flex-1 flex-col">
-          <header className="flex items-center justify-between border-b border-[var(--color-border)] bg-white px-4 py-3">
+        <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
+          <header className="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] bg-white px-4 py-3">
             <button
               type="button"
               className="rounded-lg border border-[var(--color-border)] px-3 py-1.5 text-sm md:hidden"
@@ -73,6 +74,7 @@ export function AdminShell({
               Menu
             </button>
             <div className="ml-auto flex items-center gap-3">
+              <NotificationBell />
               <div className="text-right">
                 <p className="text-sm font-medium text-[var(--color-ink)]">
                   {displayName}
@@ -86,7 +88,7 @@ export function AdminShell({
               </form>
             </div>
           </header>
-          <main className="flex-1 px-4 py-6 sm:px-6">{children}</main>
+          <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">{children}</main>
         </div>
       </div>
     </div>

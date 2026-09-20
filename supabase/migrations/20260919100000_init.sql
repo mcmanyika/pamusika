@@ -117,6 +117,10 @@ CREATE TABLE IF NOT EXISTS public.customers (
   city text,
   area text,
   preferred_language text NOT NULL DEFAULT 'en',
+  verification_status text NOT NULL DEFAULT 'UNVERIFIED'
+    CHECK (verification_status IN ('UNVERIFIED', 'PENDING', 'VERIFIED', 'REJECTED')),
+  status text NOT NULL DEFAULT 'ACTIVE'
+    CHECK (status IN ('ACTIVE', 'SUSPENDED')),
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -291,6 +295,8 @@ CREATE INDEX IF NOT EXISTS vendors_primary_category_id_idx ON public.vendors (pr
 CREATE INDEX IF NOT EXISTS vendors_business_name_trgm_idx ON public.vendors USING gin (business_name gin_trgm_ops);
 
 CREATE INDEX IF NOT EXISTS customers_area_idx ON public.customers (area);
+CREATE INDEX IF NOT EXISTS customers_verification_status_idx ON public.customers (verification_status);
+CREATE INDEX IF NOT EXISTS customers_status_idx ON public.customers (status);
 CREATE INDEX IF NOT EXISTS customer_addresses_customer_id_idx ON public.customer_addresses (customer_id);
 CREATE UNIQUE INDEX IF NOT EXISTS customer_addresses_one_default_idx
   ON public.customer_addresses (customer_id)
@@ -505,8 +511,8 @@ CREATE TRIGGER enforce_profile_role_changes
 -- profiles_update_self              authenticated may update own profile (role changes blocked by trigger)
 -- profiles_update_super_admin       SUPER_ADMIN may update any profile
 -- categories_select_staff           staff may read categories
--- categories_write_commerce         SUPER_ADMIN/ADMIN/OPERATIONS may insert/update categories
--- categories_delete_admin           SUPER_ADMIN/ADMIN may delete unused categories
+-- categories_write_staff            staff may insert/update categories
+-- categories_delete_staff           staff may delete categories (products/vendors SET NULL)
 -- vendors_select_staff              staff may read vendors (phones hidden in UI for ANALYST)
 -- vendors_write_commerce            SUPER_ADMIN/ADMIN/OPERATIONS may insert/update vendors
 -- customers_select_staff            staff may read customers (phones hidden in UI for ANALYST)
@@ -584,20 +590,23 @@ CREATE POLICY categories_select_staff
   USING (public.is_staff());
 
 DROP POLICY IF EXISTS categories_write_commerce ON public.categories;
-CREATE POLICY categories_write_commerce
+DROP POLICY IF EXISTS categories_write_staff ON public.categories;
+CREATE POLICY categories_write_staff
   ON public.categories FOR INSERT TO authenticated
-  WITH CHECK (public.can_manage_commerce());
+  WITH CHECK (public.is_staff());
 
 DROP POLICY IF EXISTS categories_update_commerce ON public.categories;
-CREATE POLICY categories_update_commerce
+DROP POLICY IF EXISTS categories_update_staff ON public.categories;
+CREATE POLICY categories_update_staff
   ON public.categories FOR UPDATE TO authenticated
-  USING (public.can_manage_commerce())
-  WITH CHECK (public.can_manage_commerce());
+  USING (public.is_staff())
+  WITH CHECK (public.is_staff());
 
 DROP POLICY IF EXISTS categories_delete_admin ON public.categories;
-CREATE POLICY categories_delete_admin
+DROP POLICY IF EXISTS categories_delete_staff ON public.categories;
+CREATE POLICY categories_delete_staff
   ON public.categories FOR DELETE TO authenticated
-  USING (public.is_admin());
+  USING (public.is_staff());
 
 DROP POLICY IF EXISTS vendors_select_pii_roles ON public.vendors;
 DROP POLICY IF EXISTS vendors_select_staff ON public.vendors;

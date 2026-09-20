@@ -33,6 +33,7 @@ const BUYER_STATES = new Set<ConversationState>([
 
 const PRODUCT_STATES = new Set<ConversationState>([
   "ADD_PRODUCT_NAME",
+  "ADD_PRODUCT_CATEGORY",
   "ADD_PRODUCT_QUANTITY",
   "ADD_PRODUCT_UNIT",
   "ADD_PRODUCT_PRICE",

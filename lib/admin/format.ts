@@ -44,3 +44,15 @@ export function locationLabel(
 ): string {
   return [area, city].filter(Boolean).join(", ") || "—";
 }
+
+export function vendorAddressLabel(vendor: {
+  area?: string | null;
+  city?: string | null;
+  province?: string | null;
+  market_name?: string | null;
+  country?: string | null;
+}): string {
+  const place = [vendor.area, vendor.city, vendor.province].filter(Boolean).join(", ");
+  const lines = [place || null, vendor.market_name || null, vendor.country || null].filter(Boolean);
+  return lines.join(" · ") || "—";
+}

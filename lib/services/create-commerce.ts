@@ -18,7 +18,7 @@ export function createCommerceServices(
   return {
     analytics: tracker,
     vendors: createVendorService(client, tracker),
-    customers: createCustomerService(client),
+    customers: createCustomerService(client, tracker),
     products: createProductService(client, tracker),
     orders: createOrderService(client, tracker),
     categories: createCategoryService(client),

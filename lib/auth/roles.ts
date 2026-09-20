@@ -20,6 +20,22 @@ export function canHandleSupport(role: string): boolean {
   );
 }
 
+export function canManageCategories(role: string): boolean {
+  return isStaffRole(role);
+}
+
+export function canMessageUsers(role: string): boolean {
+  return isStaffRole(role);
+}
+
+export function canVerifyUsers(role: string): boolean {
+  return isStaffRole(role);
+}
+
+export function canModerateAccounts(role: string): boolean {
+  return isStaffRole(role);
+}
+
 export function canViewPii(role: string): boolean {
   return (
     role === "SUPER_ADMIN" ||

@@ -27,6 +27,10 @@ export type ProductListRow = Product & {
   categoryName: string | null;
 };
 
+export type CategoryListRow = Category & {
+  productCount: number;
+};
+
 export type OrderListRow = Order & {
   items: OrderItem[];
   customerName: string | null;
@@ -44,6 +48,7 @@ export type VendorFilters = {
 export type ProductFilters = {
   q?: string;
   status?: ProductStatus;
+  categoryId?: string;
 };
 
 export type OrderFilters = {
@@ -194,6 +199,7 @@ export async function loadProducts(
       return product.status !== "REMOVED";
     })
     .filter((product) => {
+      if (filters.categoryId && product.category_id !== filters.categoryId) return false;
       const vendor = vendorById.get(product.vendor_id);
       return matchesQuery([product.name, vendor?.business_name, vendor?.vendor_code], filters.q ?? "");
     })
@@ -206,6 +212,20 @@ export async function loadProducts(
         categoryName: product.category_id ? categoryName.get(product.category_id) ?? null : null,
       };
     });
+}
+
+export async function loadCategories(client: CommerceClient): Promise<CategoryListRow[]> {
+  const [categories, products] = await Promise.all([allCategories(client), allProducts(client)]);
+  const productCount = new Map<string, number>();
+  for (const product of products) {
+    if (!product.category_id || product.status === "REMOVED") continue;
+    productCount.set(product.category_id, (productCount.get(product.category_id) ?? 0) + 1);
+  }
+
+  return categories.map((category) => ({
+    ...category,
+    productCount: productCount.get(category.id) ?? 0,
+  }));
 }
 
 export async function loadOrders(
@@ -246,7 +266,16 @@ export type CustomerListRow = Customer & {
   addresses: CustomerAddress[];
 };
 
-export async function loadCustomers(client: CommerceClient): Promise<CustomerListRow[]> {
+export type CustomerFilters = {
+  q?: string;
+  status?: string;
+  verification?: string;
+};
+
+export async function loadCustomers(
+  client: CommerceClient,
+  filters: CustomerFilters = {},
+): Promise<CustomerListRow[]> {
   const customers = await allCustomers(client);
   const { data, error } = await client
     .from("customer_addresses")
@@ -262,10 +291,23 @@ export async function loadCustomers(client: CommerceClient): Promise<CustomerLis
     addressesByCustomer.set(address.customer_id, current);
   }
 
-  return customers.map((customer) => ({
-    ...customer,
-    addresses: addressesByCustomer.get(customer.id) ?? [],
-  }));
+  return customers
+    .filter((customer) => {
+      if (filters.status && customer.status !== filters.status) {
+        return false;
+      }
+      if (filters.verification && customer.verification_status !== filters.verification) {
+        return false;
+      }
+      return matchesQuery(
+        [customer.display_name, customer.whatsapp_number, customer.city, customer.area],
+        filters.q ?? "",
+      );
+    })
+    .map((customer) => ({
+      ...customer,
+      addresses: addressesByCustomer.get(customer.id) ?? [],
+    }));
 }
 
 export type ReferralListRow = Referral & {

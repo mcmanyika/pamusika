@@ -2,13 +2,19 @@ function readEnv(name: string): string {
   return process.env[name]?.trim() ?? "";
 }
 
+function readPublicEnv(value: string | undefined): string {
+  return value?.trim() ?? "";
+}
+
 function isPresent(value: string): boolean {
   return value.length > 0;
 }
 
 export function getEnv() {
-  const supabaseUrl = readEnv("NEXT_PUBLIC_SUPABASE_URL");
-  const supabasePublishableKey = readEnv("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  const supabaseUrl = readPublicEnv(process.env.NEXT_PUBLIC_SUPABASE_URL);
+  const supabasePublishableKey = readPublicEnv(
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  );
   const supabaseServiceRoleKey = readEnv("SUPABASE_SERVICE_ROLE_KEY");
   const openaiApiKey = readEnv("OPENAI_API_KEY");
   const openaiModel = readEnv("OPENAI_MODEL") || "gpt-4.1-mini";
@@ -18,7 +24,7 @@ export function getEnv() {
   const metaWebhookVerifyToken = readEnv("META_WEBHOOK_VERIFY_TOKEN");
   const metaAppSecret = readEnv("META_APP_SECRET");
   const metaGraphApiVersion = readEnv("META_GRAPH_API_VERSION");
-  const appUrl = readEnv("NEXT_PUBLIC_APP_URL") || "http://localhost:3000";
+  const appUrl = readPublicEnv(process.env.NEXT_PUBLIC_APP_URL) || "http://localhost:3000";
 
   return {
     appUrl,

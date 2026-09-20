@@ -7,7 +7,7 @@ import { clientIp, rateLimit, resetRateLimitForTests } from "@/lib/utils/rate-li
 import { loginSchema } from "@/lib/validation/auth";
 import { parseUuid } from "@/lib/validation/ids";
 import { webhookBodyTooLarge, WHATSAPP_WEBHOOK_MAX_BODY_BYTES } from "@/lib/whatsapp/config";
-import { interactivePayload } from "@/lib/whatsapp/client";
+import { interactivePayload, whatsAppAuthFailedMessage } from "@/lib/whatsapp/client";
 import { customerMenuReplies, helpReplies, mainMenuReply, vendorMenuReplies } from "@/lib/conversation/copy";
 
 describe("unauthorized admin access", () => {
@@ -93,6 +93,21 @@ describe("upload validation", () => {
     expect(isAllowedImageSize(1024)).toBe(true);
     expect(isAllowedImageSize(MAX_IMAGE_BYTES + 1)).toBe(false);
     expect(safeImageFileName("My Photo.PNG")).toMatch(/^[0-9a-f-]{36}\.png$/);
+  });
+});
+
+describe("WhatsApp auth errors", () => {
+  it("explains an expired Meta session without repeating Graph details", () => {
+    expect(
+      whatsAppAuthFailedMessage({
+        error: { message: "Error validating access token: Session has expired on Saturday, 19-Sep-26 12:00:00 PDT." },
+      }),
+    ).toBe(
+      "WhatsApp token expired. Generate a new token in Meta Developer and update META_WHATSAPP_ACCESS_TOKEN. Until then, use Open WhatsApp.",
+    );
+    expect(whatsAppAuthFailedMessage({ error: { message: "Invalid OAuth access token." } })).toBe(
+      "Meta authentication failed",
+    );
   });
 });
 

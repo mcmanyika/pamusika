@@ -1,38 +1,31 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import {
-  pauseProductAction,
-  reactivateProductAction,
-  removeProductAction,
-} from "@/lib/admin/actions";
+import { setProductStatusAction } from "@/lib/admin/actions";
+import { PRODUCT_STATUSES } from "@/types/commerce";
 
 export function ProductActions({ id, status }: { id: string; status: string }) {
-  if (status === "REMOVED") {
-    return <span className="text-xs text-[var(--color-ink-muted)]">Removed</span>;
-  }
-
   return (
-    <div className="flex flex-wrap gap-2">
-      {status === "PAUSED" || status === "OUT_OF_STOCK" ? (
-        <form action={reactivateProductAction}>
-          <input type="hidden" name="productId" value={id} />
-          <Button type="submit" variant="secondary" className="h-8 px-3 text-xs">
-            Reactivate
-          </Button>
-        </form>
-      ) : (
-        <form action={pauseProductAction}>
-          <input type="hidden" name="productId" value={id} />
-          <Button type="submit" variant="secondary" className="h-8 px-3 text-xs">
-            Pause
-          </Button>
-        </form>
-      )}
-      <form action={removeProductAction}>
-        <input type="hidden" name="productId" value={id} />
-        <Button type="submit" variant="danger" className="h-8 px-3 text-xs">
-          Remove
-        </Button>
-      </form>
-    </div>
+    <form action={setProductStatusAction} className="flex flex-wrap items-end gap-2">
+      <input type="hidden" name="productId" value={id} />
+      <label className="text-xs text-[var(--color-ink-muted)]">
+        Status
+        <select
+          name="status"
+          defaultValue={status}
+          key={status}
+          className="mt-1 h-8 rounded-lg border border-[var(--color-border)] bg-white px-2 text-xs text-[var(--color-ink)]"
+        >
+          {PRODUCT_STATUSES.map((value) => (
+            <option key={value} value={value}>
+              {value.replace(/_/g, " ")}
+            </option>
+          ))}
+        </select>
+      </label>
+      <Button type="submit" variant="secondary" className="h-8 px-3 text-xs">
+        Save status
+      </Button>
+    </form>
   );
 }

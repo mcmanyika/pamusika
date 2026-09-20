@@ -153,7 +153,7 @@ export const handleVendorRegistration: ConversationHandler = async (turn, deps) 
     const identity = { userType: "VENDOR" as const, userId: confirmed.id };
 
     if (turn.context.pendingProduct) {
-      const continued = continueProductDraft(turn.context.pendingProduct);
+      const continued = await continueProductDraft(turn.context.pendingProduct, deps);
       return {
         ...continued,
         identity,

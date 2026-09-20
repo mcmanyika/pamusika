@@ -17,6 +17,18 @@ export const VENDOR_STATUSES = [
 
 export type VendorStatus = (typeof VENDOR_STATUSES)[number];
 
+export const CUSTOMER_STATUSES = ["ACTIVE", "SUSPENDED"] as const;
+
+export type CustomerStatus = (typeof CUSTOMER_STATUSES)[number];
+
+export function isCustomerStatus(value: string): value is CustomerStatus {
+  return CUSTOMER_STATUSES.includes(value as CustomerStatus);
+}
+
+export function nextAccountStatus(status: string): "ACTIVE" | "SUSPENDED" {
+  return status === "ACTIVE" ? "SUSPENDED" : "ACTIVE";
+}
+
 export const VERIFICATION_STATUSES = [
   "UNVERIFIED",
   "PENDING",
@@ -25,6 +37,10 @@ export const VERIFICATION_STATUSES = [
 ] as const;
 
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
+
+export function isVerificationStatus(value: string): value is VerificationStatus {
+  return VERIFICATION_STATUSES.includes(value as VerificationStatus);
+}
 
 export const PRODUCT_STATUSES = [
   "DRAFT",
@@ -35,6 +51,14 @@ export const PRODUCT_STATUSES = [
 ] as const;
 
 export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
+
+export function isProductStatus(value: string): value is ProductStatus {
+  return PRODUCT_STATUSES.includes(value as ProductStatus);
+}
+
+export const CATEGORY_STATUSES = ["ACTIVE", "INACTIVE"] as const;
+
+export type CategoryStatus = (typeof CATEGORY_STATUSES)[number];
 
 export const ORDER_STATUSES = [
   "PENDING_VENDOR",
