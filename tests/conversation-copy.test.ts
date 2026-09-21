@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
-  orderPlacedText,
-  orderQuantityPrompt,
   productListText,
   ratingPromptReplies,
   searchResultsReply,
   searchResultsText,
+  vendorChatReply,
 } from "@/lib/conversation/copy";
 import type { ProductSearchHit } from "@/lib/services/product.service";
 import type { Product } from "@/types/database";
@@ -112,10 +111,16 @@ describe("WhatsApp product listings", () => {
     );
   });
 
-  it("includes a tappable vendor chat link after a product is chosen", () => {
-    expect(orderQuantityPrompt("Tomatoes", "kg", 20, "+263771234567")).toContain(
-      "Chat: https://wa.me/263771234567",
-    );
-    expect(orderPlacedText("+263771234567")).toContain("Chat: https://wa.me/263771234567");
+  it("links Chat with Vendor to the vendor WhatsApp chat", () => {
+    expect(vendorChatReply("How much Tomatoes would you like?", "+263771234567")).toMatchObject({
+      kind: "interactive",
+      message: {
+        body: "How much Tomatoes would you like?",
+        ctaUrl: {
+          displayText: "Chat with Vendor",
+          url: "https://wa.me/263771234567",
+        },
+      },
+    });
   });
 });

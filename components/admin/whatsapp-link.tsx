@@ -25,7 +25,7 @@ export function WhatsAppLink({
         className,
       )}
     >
-      {children ?? phone}
+      {children ?? (variant === "button" ? "Chat with Vendor" : phone)}
     </a>
   );
 }

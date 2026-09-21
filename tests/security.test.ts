@@ -162,4 +162,25 @@ describe("menu buttons", () => {
     });
     expect(payload.body).toEqual({ text: "Choose an option." });
   });
+
+  it("sends Chat with Vendor as a CTA URL button, not a raw wa.me URL", () => {
+    const payload = interactivePayload({
+      body: "How much Tomatoes would you like?",
+      ctaUrl: {
+        displayText: "Chat with Vendor",
+        url: "https://wa.me/263771234567",
+      },
+    });
+    expect(payload).toEqual({
+      type: "cta_url",
+      body: { text: "How much Tomatoes would you like?" },
+      action: {
+        name: "cta_url",
+        parameters: {
+          display_text: "Chat with Vendor",
+          url: "https://wa.me/263771234567",
+        },
+      },
+    });
+  });
 });

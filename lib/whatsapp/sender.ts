@@ -39,7 +39,10 @@ export class WhatsAppSender {
             phoneNumber: input.phoneNumber,
             messageType: "interactive",
             messageText: reply.message.body,
-            payload: { to: input.to, type: reply.message.list ? "list" : "button" },
+            payload: {
+              to: input.to,
+              type: reply.message.list ? "list" : reply.message.ctaUrl ? "cta_url" : "button",
+            },
           });
         } catch (error) {
           logger.warn({

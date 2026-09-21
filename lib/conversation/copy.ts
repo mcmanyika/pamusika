@@ -1,6 +1,6 @@
 import { moneyString, parseDecimal, quantityString } from "@/lib/commerce/money";
 import { whatsappChatHref } from "@/lib/commerce/phone";
-import { buttonReply, singleMenuReplies } from "@/lib/conversation/replies";
+import { buttonReply, ctaUrlReply, singleMenuReplies, textReply } from "@/lib/conversation/replies";
 import { formatHarvestMonth, upcomingHarvestMonths } from "@/lib/harvest/month";
 import { PRODUCT_UNITS } from "@/types/commerce";
 import type { CustomerAddress, HarvestPlan, Product, Vendor } from "@/types/database";
@@ -408,7 +408,6 @@ export function orderSummaryText(draft: OrderDraft): string {
   const quantity = draft.quantity ?? 0;
   const unitPrice = moneyString(draft.unitPrice ?? 0);
   const total = moneyString(quantity * (draft.unitPrice ?? 0));
-  const chat = vendorChatBlock(draft.vendorWhatsapp);
   return `Order Summary
 
 ${draft.productName ?? "Product"}
@@ -416,7 +415,7 @@ ${quantity}${unit} × $${unitPrice}
 
 Total: $${total}
 
-Collection${chat}
+Collection
 
 Place order?`;
 }
@@ -531,20 +530,19 @@ export function ratingThanksText(score: number): string {
 You gave ${score} out of 5.`;
 }
 
-export function orderQuantityPrompt(
-  name: string,
-  unit: string,
-  available: number,
-  vendorWhatsapp?: string | null,
-): string {
+export function orderQuantityPrompt(name: string, unit: string, available: number): string {
   return `How much ${name} would you like?
 
-Available: ${available} ${unit}${vendorChatBlock(vendorWhatsapp)}`;
+Available: ${available} ${unit}`;
 }
 
-export function orderPlacedText(vendorWhatsapp?: string | null): string {
-  const chat = vendorChatBlock(vendorWhatsapp);
-  return chat ? `${COPY.orderPlaced}${chat}` : COPY.orderPlaced;
+export const VENDOR_CHAT_LABEL = "Chat with Vendor";
+
+export function vendorChatReply(body: string, phone?: string | null): EngineReply {
+  if (!phone) {
+    return textReply(body);
+  }
+  return ctaUrlReply(body, VENDOR_CHAT_LABEL, whatsappChatHref(phone));
 }
 
 export function addressLabelReplies(): EngineReply[] {
@@ -613,18 +611,6 @@ People referred: ${qualified}${total !== qualified ? ` qualified / ${total} tota
 
 function productCard(index: number, title: string, details: string[]): string {
   return [`*${index}. ${title}*`, ...details.filter(Boolean)].join("\n");
-}
-
-export function vendorChatText(phone?: string | null): string {
-  if (!phone) {
-    return "";
-  }
-  return `Chat: ${whatsappChatHref(phone)}`;
-}
-
-function vendorChatBlock(phone?: string | null): string {
-  const line = vendorChatText(phone);
-  return line ? `\n\n${line}` : "";
 }
 
 function priceLabel(value: string | number, unit: string): string {

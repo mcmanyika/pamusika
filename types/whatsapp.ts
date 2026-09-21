@@ -36,6 +36,10 @@ export type WhatsAppInteractiveMessage = {
     button: string;
     sections: WhatsAppListSection[];
   };
+  ctaUrl?: {
+    displayText: string;
+    url: string;
+  };
 };
 
 export type WhatsAppTemplateMessage = {

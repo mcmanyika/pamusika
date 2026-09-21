@@ -6,9 +6,9 @@ import {
   customerOrdersText,
   helpReplies,
   orderQuantityPrompt,
-  orderPlacedText,
   orderSummaryText,
   searchResultsReply,
+  vendorChatReply,
   vendorNewOrderText,
 } from "@/lib/conversation/copy";
 import { withOrder, withSearch } from "@/lib/conversation/context";
@@ -61,7 +61,7 @@ export const handleBuyer: ConversationHandler = async (turn, deps) => {
     return {
       state: "CUSTOMER_MENU",
       context: turn.context,
-      replies: [textReply(orderPlacedText(turn.context.order?.vendorWhatsapp)), ...customerMenuReplies()],
+      replies: [vendorChatReply(COPY.orderPlaced, turn.context.order?.vendorWhatsapp), ...customerMenuReplies()],
     };
   }
 
@@ -263,7 +263,7 @@ async function handleSearchResults(
       unitPrice: numbers.price,
       vendorWhatsapp: vendor?.whatsapp_number,
     }),
-    replies: [textReply(orderQuantityPrompt(product.name, product.unit, numbers.quantity, vendor?.whatsapp_number))],
+    replies: [vendorChatReply(orderQuantityPrompt(product.name, product.unit, numbers.quantity), vendor?.whatsapp_number)],
   };
 }
 
@@ -359,7 +359,7 @@ async function handleOrderConfirm(
     identity,
     notifications,
     replies: [
-      textReply(created ? orderPlacedText(vendorWhatsapp) : COPY.orderAlreadyPlaced),
+      vendorChatReply(created ? COPY.orderPlaced : COPY.orderAlreadyPlaced, created ? vendorWhatsapp : null),
     ],
   };
 }

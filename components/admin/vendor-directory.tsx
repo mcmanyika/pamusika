@@ -120,9 +120,7 @@ export function VendorDirectory({
                   onClick={(event) => event.stopPropagation()}
                   onKeyDown={(event) => event.stopPropagation()}
                 >
-                  <WhatsAppLink phone={vendor.whatsapp} variant="button">
-                    Chat
-                  </WhatsAppLink>
+                  <WhatsAppLink phone={vendor.whatsapp} variant="button" />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <StatusBadge>{vendor.status}</StatusBadge>
@@ -177,10 +175,8 @@ function VendorDetail({
         <div>
           <dt className="text-xs text-[var(--color-ink-muted)]">WhatsApp</dt>
           <dd className="mt-1 flex flex-wrap items-center gap-2 font-medium">
-            <WhatsAppLink phone={vendor.whatsapp} />
-            <WhatsAppLink phone={vendor.whatsapp} variant="button">
-              Chat
-            </WhatsAppLink>
+            <span>{vendor.whatsapp}</span>
+            <WhatsAppLink phone={vendor.whatsapp} variant="button" />
           </dd>
         </div>
         <Detail label="Address" value={vendor.address} />

@@ -116,9 +116,7 @@ export function ProductTable({
                         onClick={(event) => event.stopPropagation()}
                         onKeyDown={(event) => event.stopPropagation()}
                       >
-                        <WhatsAppLink phone={product.vendorWhatsapp} variant="button">
-                          Chat
-                        </WhatsAppLink>
+                        <WhatsAppLink phone={product.vendorWhatsapp} variant="button" />
                       </span>
                     ) : null}
                   </span>
@@ -166,9 +164,7 @@ function ProductDetail({
           <dt className="text-xs text-[var(--color-ink-muted)]">WhatsApp</dt>
           <dd className="mt-1 font-medium">
             {product.vendorWhatsapp ? (
-              <WhatsAppLink phone={product.vendorWhatsapp} variant="button">
-                Chat
-              </WhatsAppLink>
+              <WhatsAppLink phone={product.vendorWhatsapp} variant="button" />
             ) : (
               "—"
             )}

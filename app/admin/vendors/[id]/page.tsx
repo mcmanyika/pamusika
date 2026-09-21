@@ -57,10 +57,8 @@ export default async function AdminVendorDetailPage({
           <p className="mt-1 font-medium">{personName(vendor.first_name, vendor.last_name)}</p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">WhatsApp</p>
           <p className="mt-1 flex flex-wrap items-center gap-2 font-medium">
-            <WhatsAppLink phone={vendor.whatsapp_number} />
-            <WhatsAppLink phone={vendor.whatsapp_number} variant="button">
-              Chat
-            </WhatsAppLink>
+            <span>{vendor.whatsapp_number}</span>
+            <WhatsAppLink phone={vendor.whatsapp_number} variant="button" />
           </p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Address</p>
           <p className="mt-1 font-medium">{vendorAddressLabel(vendor)}</p>

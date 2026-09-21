@@ -153,6 +153,22 @@ export function interactivePayload(message: WhatsAppInteractiveMessage): Record<
     };
   }
 
+  if (message.ctaUrl) {
+    return {
+      type: "cta_url",
+      ...header,
+      body,
+      ...footer,
+      action: {
+        name: "cta_url",
+        parameters: {
+          display_text: clamp(message.ctaUrl.displayText, 20),
+          url: message.ctaUrl.url,
+        },
+      },
+    };
+  }
+
   return {
     type: "button",
     ...header,

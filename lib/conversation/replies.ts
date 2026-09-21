@@ -68,12 +68,31 @@ export function singleMenuReplies(
   ];
 }
 
+export function ctaUrlReply(
+  body: string,
+  displayText: string,
+  url: string,
+  extras: { header?: string; footer?: string } = {},
+): EngineReply {
+  const message: WhatsAppInteractiveMessage = {
+    body: requiredInteractiveBody(body),
+    header: extras.header,
+    footer: extras.footer,
+    ctaUrl: { displayText, url },
+  };
+  return { kind: "interactive", message };
+}
+
 export function interactiveFallbackText(message: WhatsAppInteractiveMessage): string {
   const labels = [
     ...(message.buttons ?? []).map((button) => button.title),
     ...(message.list?.sections.flatMap((section) => section.rows.map((row) => row.title)) ?? []),
   ];
   const body = message.body.trim();
+  if (message.ctaUrl) {
+    const link = `${message.ctaUrl.displayText}: ${message.ctaUrl.url}`;
+    return body ? `${body}\n\n${link}` : link;
+  }
   if (labels.length === 0) {
     return body || REQUIRED_INTERACTIVE_BODY;
   }
