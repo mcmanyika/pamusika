@@ -76,7 +76,7 @@ export function ProductTable({
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-[var(--color-border)] bg-white shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-[var(--color-border)] bg-white text-[var(--color-ink)] shadow-sm [color-scheme:light]">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-[var(--color-surface-muted)] text-[var(--color-ink-muted)]">
             <tr>

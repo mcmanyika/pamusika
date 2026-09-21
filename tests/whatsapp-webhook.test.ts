@@ -1,6 +1,7 @@
 import { createHmac } from "crypto";
 import { describe, expect, it } from "vitest";
 import { ConversationEngine } from "@/lib/conversation/engine";
+import { mainMenuText } from "@/lib/conversation/copy";
 import { CategoryService } from "@/lib/services/category.service";
 import { ConversationService } from "@/lib/services/conversation.service";
 import { CustomerService } from "@/lib/services/customer.service";
@@ -226,11 +227,11 @@ describe("webhook processing", () => {
   it("replies with the main menu for supported text", async () => {
     const { engine, logs, sender, sent } = createProcessor();
     await processInboundPayload(textPayload("wamid.hello"), { engine, logs, sender });
-    expect(sent[0]?.body).toBe("Choose an option.");
+    expect(sent[0]?.body).toBe(mainMenuText());
     expect(sent[0]?.to).toBe("263771234567");
     expect(sent[0]?.buttons).toEqual([
-      { id: "buyer", title: "Buyer" },
-      { id: "vendor", title: "Vendor" },
+      { id: "buyer", title: "Buy Something" },
+      { id: "vendor", title: "I'm a Vendor" },
     ]);
   });
 

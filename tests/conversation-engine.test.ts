@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createConversationHarness, inbound } from "./helpers/conversation";
+import { mainMenuText } from "@/lib/conversation/copy";
 
 async function say(
   engine: ReturnType<typeof createConversationHarness>["engine"],
@@ -18,14 +19,14 @@ describe("conversation engine", () => {
     expect(result.replies[0]).toMatchObject({ kind: "interactive" });
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message.body,
-    ).toBe("Choose an option.");
+    ).toBe(mainMenuText());
     expect(
       result.replies[0]?.kind === "interactive" && result.replies[0].message,
     ).toMatchObject({
-      header: "PaySell Musika",
+      header: "PaySell PAMUSIKA",
       buttons: [
-        { id: "buyer", title: "Buyer" },
-        { id: "vendor", title: "Vendor" },
+        { id: "buyer", title: "Buy Something" },
+        { id: "vendor", title: "I'm a Vendor" },
       ],
     });
     expect(
@@ -164,11 +165,11 @@ describe("conversation engine", () => {
 
     expect(result.session.current_state).toBe("MAIN_MENU");
     expect(result.replies[0]?.kind === "interactive" && result.replies[0].message).toMatchObject({
-      header: "PaySell Musika",
-      body: "Choose an option.",
+      header: "PaySell PAMUSIKA",
+      body: mainMenuText(),
       buttons: [
-        { id: "buyer", title: "Buyer" },
-        { id: "vendor", title: "Vendor" },
+        { id: "buyer", title: "Buy Something" },
+        { id: "vendor", title: "I'm a Vendor" },
       ],
     });
   });
@@ -228,8 +229,8 @@ describe("conversation engine", () => {
     });
     expect(fromBuyer.session.current_state).toBe("MAIN_MENU");
     expect(fromBuyer.replies[0]?.kind === "interactive" && fromBuyer.replies[0].message.buttons).toEqual([
-      { id: "buyer", title: "Buyer" },
-      { id: "vendor", title: "Vendor" },
+      { id: "buyer", title: "Buy Something" },
+      { id: "vendor", title: "I'm a Vendor" },
     ]);
 
     await say(engine, "2");
@@ -248,8 +249,8 @@ describe("conversation engine", () => {
     });
     expect(fromVendor.session.current_state).toBe("MAIN_MENU");
     expect(fromVendor.replies[0]?.kind === "interactive" && fromVendor.replies[0].message.buttons).toEqual([
-      { id: "buyer", title: "Buyer" },
-      { id: "vendor", title: "Vendor" },
+      { id: "buyer", title: "Buy Something" },
+      { id: "vendor", title: "I'm a Vendor" },
     ]);
   });
 
@@ -266,8 +267,8 @@ describe("conversation engine", () => {
     const home = await say(engine, "hello");
     expect(home.session.current_state).toBe("MAIN_MENU");
     expect(home.replies[0]?.kind === "interactive" && home.replies[0].message.buttons).toEqual([
-      { id: "buyer", title: "Buyer" },
-      { id: "vendor", title: "Vendor" },
+      { id: "buyer", title: "Buy Something" },
+      { id: "vendor", title: "I'm a Vendor" },
     ]);
 
     const vendor = await say(engine, "Vendor", {

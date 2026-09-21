@@ -9,7 +9,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ colorScheme: "light" }}>
       <body className="min-h-full bg-[var(--color-canvas)]">
         <div className="flex min-h-full items-center justify-center px-4 py-16">
           <div className="max-w-md rounded-2xl border border-[var(--color-border)] bg-white p-8 text-center">

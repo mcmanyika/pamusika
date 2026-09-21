@@ -40,11 +40,22 @@ export function normalizeInput(message: WhatsAppInboundMessage): NormalizedInput
 }
 
 function parseRoleChoice(choiceId: string | null, normalized: string): number | null {
-  const label = normalized.replace(/^[^\p{L}\p{N}]+/u, "").trim();
-  if (choiceId === "buyer" || label === "buyer" || label === "buyer menu") {
+  const label = normalized.replace(/^[^\p{L}\p{N}]+/u, "").replace(/['’]/g, "").trim();
+  if (
+    choiceId === "buyer" ||
+    label === "buyer" ||
+    label === "buyer menu" ||
+    label === "buy something"
+  ) {
     return 1;
   }
-  if (choiceId === "vendor" || label === "vendor" || label === "vendor menu") {
+  if (
+    choiceId === "vendor" ||
+    label === "vendor" ||
+    label === "vendor menu" ||
+    label === "im a vendor" ||
+    label === "i am a vendor"
+  ) {
     return 2;
   }
   return null;

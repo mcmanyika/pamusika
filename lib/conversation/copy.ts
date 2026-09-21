@@ -90,7 +90,12 @@ export const LANGUAGES = [
 ] as const;
 
 export function mainMenuText(): string {
-  return "Choose an option.";
+  return `Hello! 👋
+Welcome to PaySell PAMUSIKA!
+Find fresh produce, groceries, clothing, electronics and more from local vendors near you.
+Support local. Shop local. A stronger Zimbabwe for everyone.
+
+What would you like to do today?`;
 }
 
 export function helpText(): string {
@@ -134,11 +139,11 @@ export function mainMenuReply(): EngineReply {
   return buttonReply(
     mainMenuText(),
     [
-      { id: "buyer", title: "Buyer" },
-      { id: "vendor", title: "Vendor" },
+      { id: "buyer", title: "Buy Something" },
+      { id: "vendor", title: "I'm a Vendor" },
     ],
     {
-      header: "PaySell Musika",
+      header: "PaySell PAMUSIKA",
     },
   );
 }
