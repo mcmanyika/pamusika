@@ -37,6 +37,7 @@ export function staffNotificationTitle(
   metadata: Json | null,
 ): string {
   const orderNumber = metadataString(metadata, "orderNumber");
+  const cropName = metadataString(metadata, "cropName");
 
   switch (eventName) {
     case "VENDOR_REGISTERED":
@@ -71,6 +72,8 @@ export function staffNotificationTitle(
       return "Referral code used";
     case "REFERRAL_QUALIFIED":
       return "Referral qualified";
+    case "HARVEST_PLAN_CREATED":
+      return cropName ? `Harvest plan: ${cropName}` : "New harvest plan";
   }
 }
 
@@ -98,6 +101,8 @@ export function staffNotificationHref(eventName: StaffNotificationEvent): string
     case "REFERRAL_APPLIED":
     case "REFERRAL_QUALIFIED":
       return "/admin/referrals";
+    case "HARVEST_PLAN_CREATED":
+      return "/admin/harvest";
   }
 }
 

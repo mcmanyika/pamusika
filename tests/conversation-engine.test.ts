@@ -281,6 +281,7 @@ describe("conversation engine", () => {
     ).toEqual(
       expect.arrayContaining([
         { id: "1", title: "Sell a product" },
+        { id: "8", title: "Harvest plans" },
         { id: "menu", title: "Main menu" },
       ]),
     );
@@ -484,5 +485,41 @@ describe("conversation engine", () => {
       kind: "text",
       text: "Your PaySell vendor account is suspended. Reply HELP if you need support.",
     });
+  });
+
+  it("lets a vendor record and cancel an expected harvest", async () => {
+    const { engine, harvestPlans } = createConversationHarness();
+    await say(engine, "2");
+    await say(engine, "Tariro");
+    await say(engine, "Tariro Fresh Produce");
+    await say(engine, "1");
+    await say(engine, "Harare, Mbare");
+    await say(engine, "1");
+    await say(engine, "YES", { type: "interactive", choiceId: "yes" });
+
+    const menu = await say(engine, "8");
+    expect(menu.session.current_state).toBe("HARVEST_MENU");
+
+    await say(engine, "1");
+    await say(engine, "Tomatoes");
+    await say(engine, "1");
+    await say(engine, "200");
+    await say(engine, "kg");
+    await say(engine, "April 2027");
+    const saved = await say(engine, "YES", { type: "interactive", choiceId: "yes" });
+
+    expect(saved.session.current_state).toBe("HARVEST_MENU");
+    expect(harvestPlans).toHaveLength(1);
+    expect(harvestPlans[0]?.crop_name).toBe("Tomatoes");
+    expect(harvestPlans[0]?.harvest_month).toBe(4);
+    expect(harvestPlans[0]?.harvest_year).toBe(2027);
+    expect(harvestPlans[0]?.status).toBe("PLANNED");
+    expect(harvestPlans[0]?.area).toBe("Mbare");
+
+    await say(engine, "2");
+    await say(engine, "1");
+    const cancelled = await say(engine, "YES", { type: "interactive", choiceId: "yes" });
+    expect(cancelled.session.current_state).toBe("HARVEST_MENU");
+    expect(harvestPlans[0]?.status).toBe("CANCELLED");
   });
 });

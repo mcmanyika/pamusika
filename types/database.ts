@@ -163,6 +163,22 @@ export type Database = {
         score: number;
         created_at: string;
       }>;
+      harvest_plans: TableDefinition<{
+        id: string;
+        vendor_id: string;
+        category_id: string | null;
+        crop_name: string;
+        quantity: string;
+        unit: string;
+        harvest_year: number;
+        harvest_month: number;
+        expected_on: string;
+        city: string | null;
+        area: string | null;
+        status: string;
+        created_at: string;
+        updated_at: string;
+      }>;
       conversation_sessions: TableDefinition<{
         id: string;
         phone_number: string;
@@ -284,6 +300,7 @@ export type Product = Database["public"]["Tables"]["products"]["Row"];
 export type Order = Database["public"]["Tables"]["orders"]["Row"];
 export type OrderItem = Database["public"]["Tables"]["order_items"]["Row"];
 export type Rating = Database["public"]["Tables"]["ratings"]["Row"];
+export type HarvestPlan = Database["public"]["Tables"]["harvest_plans"]["Row"];
 export type ConversationSession =
   Database["public"]["Tables"]["conversation_sessions"]["Row"];
 export type MessageLog = Database["public"]["Tables"]["message_logs"]["Row"];

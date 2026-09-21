@@ -1,6 +1,7 @@
 import type { Json } from "@/types/database";
 import type {
   AddressDraft,
+  HarvestDraft,
   OrderDraft,
   ProductDraft,
   RatingDraft,
@@ -80,6 +81,7 @@ export function parseSessionContext(value: Json | null | undefined): SessionCont
     vendorOrders: parseVendorOrders(record.vendorOrders),
     address: parseAddress(record.address),
     rating: parseRating(record.rating),
+    harvest: parseHarvest(record.harvest),
   };
 }
 
@@ -230,6 +232,37 @@ export function withRating(context: SessionContext, patch: RatingDraft): Session
   return {
     ...context,
     rating: { ...context.rating, ...patch },
+  };
+}
+
+function parseHarvest(value: unknown): HarvestDraft | undefined {
+  const record = asRecord(value);
+  if (!record) {
+    return undefined;
+  }
+
+  const ids = Array.isArray(record.ids)
+    ? record.ids.filter((id): id is string => typeof id === "string")
+    : undefined;
+
+  return {
+    cropName: asString(record.cropName),
+    categoryId: asString(record.categoryId),
+    categoryName: asString(record.categoryName),
+    quantity: asNumber(record.quantity),
+    unit: asString(record.unit),
+    harvestYear: asNumber(record.harvestYear),
+    harvestMonth: asNumber(record.harvestMonth),
+    harvestLabel: asString(record.harvestLabel),
+    ids,
+    selectedId: asString(record.selectedId),
+  };
+}
+
+export function withHarvest(context: SessionContext, patch: HarvestDraft): SessionContext {
+  return {
+    ...context,
+    harvest: { ...context.harvest, ...patch },
   };
 }
 

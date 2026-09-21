@@ -28,6 +28,14 @@ export const CONVERSATION_STATES = [
   "ORDER_CONFIRM",
   "ORDER_WAITING_VENDOR",
   "RATE_ORDER",
+  "HARVEST_MENU",
+  "HARVEST_CROP",
+  "HARVEST_CATEGORY",
+  "HARVEST_QUANTITY",
+  "HARVEST_UNIT",
+  "HARVEST_MONTH",
+  "HARVEST_CONFIRM",
+  "HARVEST_LIST",
   "SUPPORT",
 ] as const;
 
@@ -100,6 +108,19 @@ export type RatingDraft = {
   rateeName?: string;
 };
 
+export type HarvestDraft = {
+  cropName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  quantity?: number;
+  unit?: string;
+  harvestYear?: number;
+  harvestMonth?: number;
+  harvestLabel?: string;
+  ids?: string[];
+  selectedId?: string;
+};
+
 export type SessionContext = {
   registration?: RegistrationDraft;
   product?: ProductDraft;
@@ -109,6 +130,7 @@ export type SessionContext = {
   vendorOrders?: VendorOrderDraft;
   address?: AddressDraft;
   rating?: RatingDraft;
+  harvest?: HarvestDraft;
 };
 
 export const MESSAGE_DIRECTIONS = ["INBOUND", "OUTBOUND"] as const;

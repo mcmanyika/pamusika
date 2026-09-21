@@ -7,6 +7,7 @@ import { ProductService } from "@/lib/services/product.service";
 import { SupportService } from "@/lib/services/support.service";
 import { ReferralService } from "@/lib/services/referral.service";
 import { RatingService } from "@/lib/services/rating.service";
+import { HarvestService } from "@/lib/services/harvest.service";
 import { VendorService } from "@/lib/services/vendor.service";
 import type { ConversationEngineDeps } from "@/lib/conversation/handlers/types";
 import type { OrderRecord } from "@/lib/services/order.service";
@@ -14,6 +15,7 @@ import type {
   Category,
   Customer,
   CustomerAddress,
+  HarvestPlan,
   Product,
   Rating,
   Referral,
@@ -28,6 +30,7 @@ import {
   createMemoryReferralOwners,
   createMemoryReferralStore,
   createMemoryRatingStore,
+  createMemoryHarvestStore,
   createMemoryIdempotencyStore,
   createMemoryOrderStore,
   createMemoryProductStore,
@@ -79,6 +82,7 @@ export function createConversationHarness(options?: {
   const referralCodes: ReferralCode[] = [];
   const referrals: Referral[] = [];
   const ratings: Rating[] = [];
+  const harvestPlans: HarvestPlan[] = [];
   const orders: OrderRecord[] = [];
   const tickets: SupportTicket[] = [];
   const categories = [testCategory(), testCategory("cat-other", "Other")];
@@ -116,6 +120,14 @@ export function createConversationHarness(options?: {
         },
       },
     ),
+    harvest: new HarvestService(
+      createMemoryHarvestStore(harvestPlans),
+      {
+        async getById(id) {
+          return vendors.find((vendor) => vendor.id === id) ?? null;
+        },
+      },
+    ),
     intent: options?.intent,
   });
 
@@ -128,6 +140,7 @@ export function createConversationHarness(options?: {
     referralCodes,
     referrals,
     ratings,
+    harvestPlans,
     orders,
     categories,
     tickets,

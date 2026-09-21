@@ -1,4 +1,9 @@
 import { moneyString, parseDecimal } from "@/lib/commerce/money";
+import { formatHarvestMonth } from "@/lib/harvest/month";
+
+export function formatHarvestMonthLabel(year: number, month: number): string {
+  return formatHarvestMonth(year, month);
+}
 
 export function formatMoney(value: number | string): string {
   const amount = typeof value === "number" ? value : parseDecimal(value, "amount");

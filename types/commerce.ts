@@ -132,3 +132,17 @@ export type RatingScore = (typeof RATING_SCORES)[number];
 export function isRatingScore(value: number): value is RatingScore {
   return RATING_SCORES.includes(value as RatingScore);
 }
+
+export const HARVEST_PLAN_STATUSES = [
+  "PLANNED",
+  "READY",
+  "LISTED",
+  "CANCELLED",
+  "MISSED",
+] as const;
+
+export type HarvestPlanStatus = (typeof HARVEST_PLAN_STATUSES)[number];
+
+export function isHarvestPlanStatus(value: string): value is HarvestPlanStatus {
+  return HARVEST_PLAN_STATUSES.includes(value as HarvestPlanStatus);
+}

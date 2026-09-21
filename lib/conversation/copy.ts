@@ -1,10 +1,11 @@
 import { moneyString, parseDecimal, quantityString } from "@/lib/commerce/money";
 import { buttonReply, singleMenuReplies } from "@/lib/conversation/replies";
+import { formatHarvestMonth, upcomingHarvestMonths } from "@/lib/harvest/month";
 import { PRODUCT_UNITS } from "@/types/commerce";
-import type { CustomerAddress, Product, Vendor } from "@/types/database";
+import type { CustomerAddress, HarvestPlan, Product, Vendor } from "@/types/database";
 import type { OrderRecord } from "@/lib/services/order.service";
 import type { ProductSearchHit } from "@/lib/services/product.service";
-import type { OrderDraft, ProductDraft, RatingDraft, RegistrationDraft } from "@/types/conversation";
+import type { HarvestDraft, OrderDraft, ProductDraft, RatingDraft, RegistrationDraft } from "@/types/conversation";
 import type { EngineReply } from "@/types/whatsapp";
 
 export const COPY = {
@@ -70,6 +71,15 @@ export const COPY = {
   invalidRating: "Reply with a score from 1 to 5, or SKIP.",
   ratingThanks: "Thanks for the rating.",
   ratingSkipped: "No problem. You can keep using PaySell.",
+  askHarvestCrop: "What crop are you expecting to harvest?",
+  invalidHarvestCrop: "Please send the crop name, like tomatoes.",
+  askHarvestMonth: "Which month do you expect to harvest?",
+  invalidHarvestMonth: "Reply with the number next to a month, or type April 2027.",
+  noHarvestPlans: "You have no harvest plans yet.\n\nReply 1 to add one, or MENU to go back.",
+  harvestSaved: "Harvest plan saved. Buyers will not see this until you list it as a product.",
+  harvestCancelled: "That harvest plan was cancelled.",
+  invalidHarvestChoice: "Reply with the number next to a plan, or MENU to go back.",
+  askHarvestQuantity: "How much do you expect to harvest?",
 } as const;
 
 export const LANGUAGES = [
@@ -86,7 +96,7 @@ export function helpText(): string {
   return `PaySell Help
 
 Buyers can search products and place collection orders.
-Vendors can list products and accept, ready, and complete orders.
+Vendors can list products, record expected harvests, and accept, ready, and complete orders.
 
 What would you like to do?`;
 }
@@ -99,6 +109,7 @@ const VENDOR_MENU_BUTTONS = [
   { id: "5", title: "My business" },
   { id: "6", title: "Help / Support" },
   { id: "7", title: "Invite" },
+  { id: "8", title: "Harvest plans" },
   { id: "menu", title: "Main menu" },
 ];
 
@@ -215,6 +226,78 @@ export function unitMenuReplies(): EngineReply[] {
       footer: "Tap Choose to continue",
     },
   );
+}
+
+const HARVEST_MENU_BUTTONS = [
+  { id: "1", title: "Add harvest plan" },
+  { id: "2", title: "My harvest plans" },
+  { id: "back", title: "Vendor menu" },
+];
+
+export function harvestMenuReplies(): EngineReply[] {
+  return singleMenuReplies(HARVEST_MENU_BUTTONS, {
+    header: "Harvest plans",
+    footer: "Tap Choose to continue",
+  });
+}
+
+export function harvestMonthMenuReplies(from: Date = new Date()): EngineReply[] {
+  return singleMenuReplies(
+    upcomingHarvestMonths(from).map((month, index) => ({
+      id: String(index + 1),
+      title: month.label,
+    })),
+    {
+      header: "Harvest month",
+      body: COPY.askHarvestMonth,
+      footer: "Tap a month, or type April 2027",
+    },
+  );
+}
+
+export function harvestConfirmText(draft: HarvestDraft): string {
+  const unit = draft.unit ?? "kg";
+  const quantity = draft.quantity ?? 0;
+  const when =
+    draft.harvestLabel ??
+    (draft.harvestYear && draft.harvestMonth
+      ? formatHarvestMonth(draft.harvestYear, draft.harvestMonth)
+      : "Month not set");
+  return `Please confirm:
+
+${draft.cropName ?? "Crop"}
+${draft.categoryName ?? "Uncategorised"}
+${quantity} ${unit}
+${when}
+
+Save this harvest plan?`;
+}
+
+export function harvestListText(plans: HarvestPlan[]): string {
+  if (plans.length === 0) {
+    return COPY.noHarvestPlans;
+  }
+
+  const shown = plans.slice(0, 8);
+  const cards = shown.map((plan, index) =>
+    productCard(index + 1, plan.crop_name, [
+      `${stockLabel(plan.quantity, plan.unit)} · ${formatHarvestMonth(plan.harvest_year, plan.harvest_month)}`,
+      statusLabel(plan.status),
+    ]),
+  );
+
+  return `*Harvest plans* · ${plans.length}
+
+${cards.join("\n\n")}
+
+Reply with a number to cancel one, or MENU to go back.`;
+}
+
+export function harvestCancelConfirmText(plan: HarvestPlan): string {
+  return `Cancel this harvest plan?
+
+${plan.crop_name}
+${stockLabel(plan.quantity, plan.unit)} · ${formatHarvestMonth(plan.harvest_year, plan.harvest_month)}`;
 }
 
 export function registrationConfirmText(draft: RegistrationDraft): string {

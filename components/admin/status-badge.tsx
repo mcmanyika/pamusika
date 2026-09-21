@@ -25,6 +25,9 @@ const TONE: Record<string, string> = {
   OUT_OF_STOCK: "bg-red-100 text-red-800",
   RESOLVED: "bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]",
   CLOSED: "bg-[var(--color-surface-muted)] text-[var(--color-ink-muted)]",
+  PLANNED: "bg-amber-100 text-amber-900",
+  LISTED: "bg-[var(--color-brand-soft)] text-[var(--color-brand-dark)]",
+  MISSED: "bg-red-100 text-red-800",
 };
 
 export function StatusBadge({ children }: { children: ReactNode }) {

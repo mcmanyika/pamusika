@@ -20,6 +20,8 @@ export const ANALYTICS_EVENTS = [
   "REFERRAL_APPLIED",
   "REFERRAL_QUALIFIED",
   "RATING_SUBMITTED",
+  "HARVEST_PLAN_CREATED",
+  "HARVEST_PLAN_CANCELLED",
 ] as const;
 
 export type AnalyticsEventName = (typeof ANALYTICS_EVENTS)[number];
@@ -41,6 +43,7 @@ export const STAFF_NOTIFICATION_EVENTS = [
   "SUPPORT_REQUESTED",
   "REFERRAL_APPLIED",
   "REFERRAL_QUALIFIED",
+  "HARVEST_PLAN_CREATED",
 ] as const satisfies readonly AnalyticsEventName[];
 
 export type StaffNotificationEvent = (typeof STAFF_NOTIFICATION_EVENTS)[number];

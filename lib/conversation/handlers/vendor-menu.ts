@@ -6,6 +6,7 @@ import {
   vendorProfileText,
 } from "@/lib/conversation/copy";
 import { showInvite } from "@/lib/conversation/handlers/referrals";
+import { openHarvestMenu } from "@/lib/conversation/handlers/harvest";
 import { landingFor } from "@/lib/conversation/handlers/shared";
 import {
   handleVendorOrderPick,
@@ -104,6 +105,10 @@ export const handleVendorMenu: ConversationHandler = async (turn, deps) => {
       context: {},
       replies: vendorMenuReplies(),
     });
+  }
+
+  if (turn.input.choice === 8) {
+    return openHarvestMenu();
   }
 
   return {

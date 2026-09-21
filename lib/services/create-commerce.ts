@@ -7,6 +7,7 @@ import { createProductService } from "@/lib/services/product.service";
 import { createSupportService } from "@/lib/services/support.service";
 import { createReferralService } from "@/lib/services/referral.service";
 import { createRatingService } from "@/lib/services/rating.service";
+import { createHarvestService } from "@/lib/services/harvest.service";
 import { createVendorService } from "@/lib/services/vendor.service";
 import type { CommerceClient } from "@/lib/supabase/database";
 
@@ -15,11 +16,12 @@ export function createCommerceServices(
   analytics?: AnalyticsTracker,
 ) {
   const tracker = analytics ?? new AnalyticsService(client);
+  const vendors = createVendorService(client, tracker);
   const orders = createOrderService(client, tracker);
 
   return {
     analytics: tracker,
-    vendors: createVendorService(client, tracker),
+    vendors,
     customers: createCustomerService(client, tracker),
     products: createProductService(client, tracker),
     orders,
@@ -27,5 +29,6 @@ export function createCommerceServices(
     support: createSupportService(client, tracker),
     referrals: createReferralService(client, tracker),
     ratings: createRatingService(client, orders, tracker),
+    harvest: createHarvestService(client, vendors, tracker),
   };
 }

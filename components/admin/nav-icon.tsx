@@ -94,6 +94,15 @@ export function NavIcon({ name }: { name: AdminNavIcon }) {
           <path d="M17 16v-8" />
         </Icon>
       );
+    case "harvest":
+      return (
+        <Icon>
+          <path d="M7 20h10" />
+          <path d="M12 20V10" />
+          <path d="M12 10c4-6 8-6 8-6s0 6-8 6" />
+          <path d="M12 10C8 4 4 4 4 4s0 6 8 6" />
+        </Icon>
+      );
     case "settings":
       return (
         <Icon>

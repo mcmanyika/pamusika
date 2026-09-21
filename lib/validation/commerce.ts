@@ -105,6 +105,19 @@ export const submitRatingSchema = z.object({
   score: z.number().int().min(1).max(5),
 });
 
+export const createHarvestPlanSchema = z.object({
+  vendorId: z.string().min(1),
+  cropName: z.string().trim().min(2, "Crop name is required").max(80),
+  quantity: z.number().positive("Quantity must be greater than 0"),
+  unit: z.enum(PRODUCT_UNITS),
+  harvestYear: z.number().int().min(2020).max(2100),
+  harvestMonth: z.number().int().min(1).max(12),
+  categoryId: z.string().min(1).optional(),
+  city: z.string().trim().min(1).optional(),
+  area: z.string().trim().min(1).optional(),
+  idempotencyKey: z.string().min(8).optional(),
+});
+
 export type CreateCustomerAddressInput = z.input<typeof createCustomerAddressSchema>;
 export type ApplyReferralInput = z.input<typeof applyReferralSchema>;
 export type CreateCategoryInput = z.input<typeof createCategorySchema>;
@@ -113,3 +126,4 @@ export type CreateProductDraftInput = z.input<typeof createProductDraftSchema>;
 export type SearchProductsInput = z.input<typeof searchProductsSchema>;
 export type CreateOrderInput = z.input<typeof createOrderSchema>;
 export type SubmitRatingInput = z.input<typeof submitRatingSchema>;
+export type CreateHarvestPlanInput = z.input<typeof createHarvestPlanSchema>;

@@ -6,6 +6,7 @@ import type {
   Category,
   Customer,
   CustomerAddress,
+  HarvestPlan,
   Order,
   OrderItem,
   Product,
@@ -346,6 +347,30 @@ export async function loadReferrals(client: CommerceClient): Promise<ReferralLis
           : (referrer && "display_name" in referrer ? referrer.display_name : null),
     };
   });
+}
+
+export type HarvestListRow = HarvestPlan & {
+  vendorName: string | null;
+  categoryName: string | null;
+};
+
+export async function loadHarvestPlans(client: CommerceClient): Promise<HarvestListRow[]> {
+  const { data, error } = await client
+    .from("harvest_plans")
+    .select("*")
+    .order("expected_on", { ascending: true })
+    .limit(200);
+  if (error) throwStoreError(error);
+
+  const [vendors, categories] = await Promise.all([allVendors(client), allCategories(client)]);
+  const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+
+  return (data ?? []).map((plan) => ({
+    ...plan,
+    vendorName: vendorById.get(plan.vendor_id)?.business_name ?? vendorById.get(plan.vendor_id)?.vendor_code ?? null,
+    categoryName: plan.category_id ? categoryById.get(plan.category_id)?.name ?? null : null,
+  }));
 }
 
 export async function loadTickets(

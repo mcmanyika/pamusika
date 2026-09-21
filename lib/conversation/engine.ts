@@ -76,7 +76,7 @@ export class ConversationEngine {
       return { session, identity, replies: landed.replies, notifications: [] };
     }
 
-    if (input.help && !state.startsWith("VENDOR_REGISTRATION") && !state.startsWith("ADD_PRODUCT") && !state.startsWith("SEARCH") && !state.startsWith("ORDER_") && !state.startsWith("RATE_")) {
+    if (input.help && !state.startsWith("VENDOR_REGISTRATION") && !state.startsWith("ADD_PRODUCT") && !state.startsWith("SEARCH") && !state.startsWith("ORDER_") && !state.startsWith("RATE_") && !state.startsWith("HARVEST")) {
       const landed = showHelp();
       session = await this.persist(session.id, landed, identity);
       return { session, identity, replies: landed.replies, notifications: [] };

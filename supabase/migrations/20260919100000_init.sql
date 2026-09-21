@@ -233,6 +233,25 @@ CREATE TABLE IF NOT EXISTS public.ratings (
   CHECK (rater_type <> ratee_type)
 );
 
+CREATE TABLE IF NOT EXISTS public.harvest_plans (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  vendor_id uuid NOT NULL REFERENCES public.vendors (id) ON DELETE RESTRICT,
+  category_id uuid REFERENCES public.categories (id) ON DELETE SET NULL,
+  crop_name text NOT NULL,
+  quantity numeric(12, 3) NOT NULL CHECK (quantity > 0),
+  unit text NOT NULL DEFAULT 'kg',
+  harvest_year integer NOT NULL CHECK (harvest_year BETWEEN 2020 AND 2100),
+  harvest_month integer NOT NULL CHECK (harvest_month BETWEEN 1 AND 12),
+  expected_on date NOT NULL,
+  city text,
+  area text,
+  status text NOT NULL DEFAULT 'PLANNED'
+    CHECK (status IN ('PLANNED', 'READY', 'LISTED', 'CANCELLED', 'MISSED')),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CHECK (expected_on = make_date(harvest_year, harvest_month, 1))
+);
+
 CREATE TABLE IF NOT EXISTS public.conversation_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   phone_number text NOT NULL,
@@ -335,6 +354,10 @@ CREATE INDEX IF NOT EXISTS order_items_product_id_idx ON public.order_items (pro
 CREATE INDEX IF NOT EXISTS ratings_order_id_idx ON public.ratings (order_id);
 CREATE INDEX IF NOT EXISTS ratings_ratee_idx ON public.ratings (ratee_type, ratee_id);
 
+CREATE INDEX IF NOT EXISTS harvest_plans_vendor_id_idx ON public.harvest_plans (vendor_id);
+CREATE INDEX IF NOT EXISTS harvest_plans_expected_on_idx ON public.harvest_plans (expected_on);
+CREATE INDEX IF NOT EXISTS harvest_plans_status_idx ON public.harvest_plans (status);
+
 CREATE UNIQUE INDEX IF NOT EXISTS conversation_sessions_one_active_per_phone_idx
   ON public.conversation_sessions (phone_number)
   WHERE is_active = true;
@@ -396,6 +419,11 @@ CREATE TRIGGER set_products_updated_at
 DROP TRIGGER IF EXISTS set_orders_updated_at ON public.orders;
 CREATE TRIGGER set_orders_updated_at
   BEFORE UPDATE ON public.orders
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_harvest_plans_updated_at ON public.harvest_plans;
+CREATE TRIGGER set_harvest_plans_updated_at
+  BEFORE UPDATE ON public.harvest_plans
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 DROP TRIGGER IF EXISTS set_conversation_sessions_updated_at ON public.conversation_sessions;
@@ -562,6 +590,7 @@ ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.harvest_plans ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.message_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets ENABLE ROW LEVEL SECURITY;
@@ -579,6 +608,7 @@ ALTER TABLE public.products FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.orders FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.ratings FORCE ROW LEVEL SECURITY;
+ALTER TABLE public.harvest_plans FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.conversation_sessions FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.message_logs FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.support_tickets FORCE ROW LEVEL SECURITY;
@@ -739,6 +769,11 @@ CREATE POLICY ratings_select_staff
   ON public.ratings FOR SELECT TO authenticated
   USING (public.is_staff());
 
+DROP POLICY IF EXISTS harvest_plans_select_staff ON public.harvest_plans;
+CREATE POLICY harvest_plans_select_staff
+  ON public.harvest_plans FOR SELECT TO authenticated
+  USING (public.is_staff());
+
 DROP POLICY IF EXISTS conversation_sessions_select_ops ON public.conversation_sessions;
 CREATE POLICY conversation_sessions_select_ops
   ON public.conversation_sessions FOR SELECT TO authenticated
@@ -795,6 +830,7 @@ REVOKE ALL ON TABLE public.products FROM anon;
 REVOKE ALL ON TABLE public.orders FROM anon;
 REVOKE ALL ON TABLE public.order_items FROM anon;
 REVOKE ALL ON TABLE public.ratings FROM anon;
+REVOKE ALL ON TABLE public.harvest_plans FROM anon;
 REVOKE ALL ON TABLE public.conversation_sessions FROM anon;
 REVOKE ALL ON TABLE public.message_logs FROM anon;
 REVOKE ALL ON TABLE public.support_tickets FROM anon;
@@ -812,6 +848,7 @@ GRANT SELECT, INSERT, UPDATE ON TABLE public.products TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.orders TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.order_items TO authenticated;
 GRANT SELECT ON TABLE public.ratings TO authenticated;
+GRANT SELECT ON TABLE public.harvest_plans TO authenticated;
 GRANT SELECT ON TABLE public.conversation_sessions TO authenticated;
 GRANT SELECT ON TABLE public.message_logs TO authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.support_tickets TO authenticated;

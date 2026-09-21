@@ -7,6 +7,7 @@ import type { IdempotencyStore } from "@/lib/services/idempotency";
 import type { CustomerStore } from "@/lib/services/customer.service";
 import type { ReferralOwnerLookup, ReferralStore } from "@/lib/services/referral.service";
 import type { RatingStore } from "@/lib/services/rating.service";
+import type { HarvestStore } from "@/lib/services/harvest.service";
 import type { OrderRecord, OrderStore } from "@/lib/services/order.service";
 import type { ProductSearchHit, ProductStore } from "@/lib/services/product.service";
 import type { VendorStore } from "@/lib/services/vendor.service";
@@ -16,6 +17,7 @@ import type {
   Customer,
   CustomerAddress,
   Category,
+  HarvestPlan,
   Product,
   Rating,
   Referral,
@@ -495,6 +497,37 @@ export function createMemoryRatingStore(seed: Rating[] = []): RatingStore {
       }
       ratings.push(rating);
       return rating;
+    },
+  };
+}
+
+export function createMemoryHarvestStore(seed: HarvestPlan[] = []): HarvestStore {
+  const plans = seed;
+
+  return {
+    async findById(id) {
+      return plans.find((row) => row.id === id) ?? null;
+    },
+    async listByVendor(vendorId) {
+      return plans
+        .filter((row) => row.vendor_id === vendorId)
+        .slice()
+        .sort((left, right) => left.expected_on.localeCompare(right.expected_on));
+    },
+    async listAll() {
+      return plans.slice().sort((left, right) => left.expected_on.localeCompare(right.expected_on));
+    },
+    async create(plan) {
+      plans.push(plan);
+      return plan;
+    },
+    async update(id, patch) {
+      const index = plans.findIndex((row) => row.id === id);
+      if (index === -1) {
+        throw new CommerceError("HARVEST_PLAN_NOT_FOUND", "Harvest plan not found");
+      }
+      plans[index] = { ...plans[index]!, ...patch, updated_at: new Date().toISOString() };
+      return plans[index]!;
     },
   };
 }

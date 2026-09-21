@@ -2,6 +2,7 @@ import { handleAddProduct } from "@/lib/conversation/handlers/add-product";
 import { handleBuyer } from "@/lib/conversation/handlers/buyer";
 import { handleMainMenu } from "@/lib/conversation/handlers/main-menu";
 import { handleSupport } from "@/lib/conversation/handlers/shared";
+import { handleHarvest } from "@/lib/conversation/handlers/harvest";
 import { handleRating } from "@/lib/conversation/handlers/rating";
 import { handleVendorMenu } from "@/lib/conversation/handlers/vendor-menu";
 import { handleVendorRegistration } from "@/lib/conversation/handlers/vendor-registration";
@@ -30,6 +31,17 @@ const BUYER_STATES = new Set<ConversationState>([
   "ORDER_QUANTITY",
   "ORDER_CONFIRM",
   "ORDER_WAITING_VENDOR",
+]);
+
+const HARVEST_STATES = new Set<ConversationState>([
+  "HARVEST_MENU",
+  "HARVEST_CROP",
+  "HARVEST_CATEGORY",
+  "HARVEST_QUANTITY",
+  "HARVEST_UNIT",
+  "HARVEST_MONTH",
+  "HARVEST_CONFIRM",
+  "HARVEST_LIST",
 ]);
 
 const PRODUCT_STATES = new Set<ConversationState>([
@@ -73,6 +85,10 @@ export function getHandler(state: ConversationState): ConversationHandler {
 
   if (state === "RATE_ORDER") {
     return handleRating;
+  }
+
+  if (HARVEST_STATES.has(state)) {
+    return handleHarvest;
   }
 
   if (state === "SUPPORT") {
