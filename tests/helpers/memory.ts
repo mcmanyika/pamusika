@@ -207,6 +207,7 @@ export function createMemoryProductStore(input: {
               area: vendor.area,
               city: vendor.city,
               status: vendor.status,
+              whatsapp_number: vendor.whatsapp_number,
             },
             category: null,
           } satisfies ProductSearchHit;

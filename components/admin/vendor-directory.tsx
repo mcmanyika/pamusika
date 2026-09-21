@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { CategoryLabel } from "@/components/admin/category-icon";
 import { SortHeader } from "@/components/admin/sort-header";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { VendorActions } from "@/components/admin/vendor-actions";
@@ -20,6 +21,7 @@ export type VendorDirectoryItem = {
   whatsapp: string;
   address: string;
   categoryName: string;
+  categorySlug?: string | null;
   productCount: number;
   orderCount: number;
   status: string;
@@ -113,8 +115,14 @@ export function VendorDirectory({
                   <p className="font-medium text-[var(--color-brand-dark)]">{vendor.businessName}</p>
                   <p className="text-xs text-[var(--color-ink-muted)]">{vendor.vendorCode}</p>
                 </td>
-                <td className="whitespace-nowrap px-4 py-3 text-[var(--color-ink)]">
-                  {vendor.whatsapp}
+                <td
+                  className="whitespace-nowrap px-4 py-3"
+                  onClick={(event) => event.stopPropagation()}
+                  onKeyDown={(event) => event.stopPropagation()}
+                >
+                  <WhatsAppLink phone={vendor.whatsapp} variant="button">
+                    Chat
+                  </WhatsAppLink>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <StatusBadge>{vendor.status}</StatusBadge>
@@ -168,12 +176,15 @@ function VendorDetail({
         <Detail label="Contact" value={vendor.contactName} />
         <div>
           <dt className="text-xs text-[var(--color-ink-muted)]">WhatsApp</dt>
-          <dd className="mt-1 font-medium">
+          <dd className="mt-1 flex flex-wrap items-center gap-2 font-medium">
             <WhatsAppLink phone={vendor.whatsapp} />
+            <WhatsAppLink phone={vendor.whatsapp} variant="button">
+              Chat
+            </WhatsAppLink>
           </dd>
         </div>
         <Detail label="Address" value={vendor.address} />
-        <Detail label="Category" value={vendor.categoryName} />
+        <Detail label="Category" value={<CategoryLabel name={vendor.categoryName} slug={vendor.categorySlug} />} />
         <Detail label="Joined" value={vendor.joined} />
         <Detail label="Products" value={String(vendor.productCount)} />
         <Detail label="Orders" value={String(vendor.orderCount)} />
@@ -197,7 +208,7 @@ function VendorDetail({
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-[var(--color-ink-muted)]">{label}</dt>

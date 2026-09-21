@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { CategoryLabel } from "@/components/admin/category-icon";
 import { VendorActions } from "@/components/admin/vendor-actions";
 import { VendorVerificationActions } from "@/components/admin/verification-actions";
 import { WhatsAppCompose } from "@/components/admin/whatsapp-compose";
@@ -28,7 +29,7 @@ export default async function AdminVendorDetailPage({
     notFound();
   }
 
-  const { vendor, categoryName, products, orders, tickets, events, rating } = detail;
+  const { vendor, categoryName, categorySlug, products, orders, tickets, events, rating } = detail;
   const completed = orders.filter((order) => order.status === "COMPLETED");
   const gmv = completed.reduce((sum, order) => sum + parseDecimal(order.total, "total"), 0);
 
@@ -55,8 +56,11 @@ export default async function AdminVendorDetailPage({
           <p className="text-sm text-[var(--color-ink-muted)]">Contact name</p>
           <p className="mt-1 font-medium">{personName(vendor.first_name, vendor.last_name)}</p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">WhatsApp</p>
-          <p className="mt-1 font-medium">
+          <p className="mt-1 flex flex-wrap items-center gap-2 font-medium">
             <WhatsAppLink phone={vendor.whatsapp_number} />
+            <WhatsAppLink phone={vendor.whatsapp_number} variant="button">
+              Chat
+            </WhatsAppLink>
           </p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Address</p>
           <p className="mt-1 font-medium">{vendorAddressLabel(vendor)}</p>
@@ -69,7 +73,9 @@ export default async function AdminVendorDetailPage({
         </Card>
         <Card>
           <p className="text-sm text-[var(--color-ink-muted)]">Category</p>
-          <p className="mt-1 font-medium">{categoryName ?? "—"}</p>
+          <p className="mt-1 font-medium">
+            <CategoryLabel name={categoryName} slug={categorySlug} variant="badge" />
+          </p>
           <p className="mt-3 text-sm text-[var(--color-ink-muted)]">Verification</p>
           <p className="mt-1 font-medium">
             <StatusBadge>{vendor.verification_status}</StatusBadge>

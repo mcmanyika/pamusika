@@ -85,6 +85,7 @@ export type OrderDraft = {
   available?: number;
   unitPrice?: number;
   orderId?: string;
+  vendorWhatsapp?: string;
 };
 
 export type VendorOrderDraft = {

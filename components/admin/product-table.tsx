@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
+import { CategoryLabel } from "@/components/admin/category-icon";
 import { ProductActions } from "@/components/admin/product-actions";
 import { SortHeader } from "@/components/admin/sort-header";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { WhatsAppLink } from "@/components/admin/whatsapp-link";
 import { Card } from "@/components/ui/card";
 import { Modal } from "@/components/ui/modal";
 import { nextSortState, sortBy, type SortState } from "@/lib/admin/sort";
@@ -15,7 +17,9 @@ export type ProductTableRow = {
   name: string;
   description: string;
   vendorName: string;
+  vendorWhatsapp?: string | null;
   categoryName: string;
+  categorySlug?: string | null;
   area: string;
   priceLabel: string;
   price: number;
@@ -104,7 +108,21 @@ export function ProductTable({
                 }}
               >
                 <td className="px-4 py-3 font-medium text-[var(--color-brand-dark)]">{product.name}</td>
-                <td className="whitespace-nowrap px-4 py-3 text-[var(--color-ink)]">{product.vendorName}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-[var(--color-ink)]">
+                  <span className="flex items-center gap-2">
+                    {product.vendorName}
+                    {product.vendorWhatsapp ? (
+                      <span
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => event.stopPropagation()}
+                      >
+                        <WhatsAppLink phone={product.vendorWhatsapp} variant="button">
+                          Chat
+                        </WhatsAppLink>
+                      </span>
+                    ) : null}
+                  </span>
+                </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <StatusBadge>{product.status}</StatusBadge>
                 </td>
@@ -144,7 +162,19 @@ function ProductDetail({
       ) : null}
       <dl className="grid gap-3 sm:grid-cols-2">
         <Detail label="Vendor" value={product.vendorName} />
-        <Detail label="Category" value={product.categoryName} />
+        <div>
+          <dt className="text-xs text-[var(--color-ink-muted)]">WhatsApp</dt>
+          <dd className="mt-1 font-medium">
+            {product.vendorWhatsapp ? (
+              <WhatsAppLink phone={product.vendorWhatsapp} variant="button">
+                Chat
+              </WhatsAppLink>
+            ) : (
+              "—"
+            )}
+          </dd>
+        </div>
+        <Detail label="Category" value={<CategoryLabel name={product.categoryName} slug={product.categorySlug} />} />
         <Detail label="Area" value={product.area} />
         <Detail label="Price" value={product.priceLabel} />
         <Detail label="Stock" value={product.stockLabel} />
@@ -166,7 +196,7 @@ function ProductDetail({
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
+function Detail({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <dt className="text-xs text-[var(--color-ink-muted)]">{label}</dt>

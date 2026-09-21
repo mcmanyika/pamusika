@@ -20,11 +20,8 @@ export function WhatsAppCompose({
   return (
     <div className="mt-4 border-t border-[var(--color-border)] pt-4">
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <WhatsAppLink
-          phone={phone}
-          className="inline-flex h-8 items-center rounded-lg border border-[var(--color-border)] px-3 text-xs font-medium text-[var(--color-ink)] no-underline hover:bg-[var(--color-surface-muted)] hover:no-underline"
-        >
-          Open WhatsApp
+        <WhatsAppLink phone={phone} variant="button">
+          Chat on WhatsApp
         </WhatsAppLink>
         <p className="text-xs text-[var(--color-ink-muted)]">
           Chat from your phone, or send from PaySell below.

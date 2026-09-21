@@ -1,12 +1,10 @@
-import { normalizePhoneNumber, toWhatsAppId } from "@/lib/commerce/phone";
+import { normalizePhoneNumber, toWhatsAppId, whatsappChatHref } from "@/lib/commerce/phone";
 import type { MessageLogService } from "@/lib/services/message-log.service";
 import type { WhatsAppClient } from "@/types/whatsapp";
 
 export const STAFF_WHATSAPP_MAX_CHARS = 1000;
 
-export function whatsappChatHref(phone: string): string {
-  return `https://wa.me/${toWhatsAppId(phone)}`;
-}
+export { whatsappChatHref };
 
 export function staffWhatsAppText(message: string, staffLabel: string): string {
   const body = message.trim();

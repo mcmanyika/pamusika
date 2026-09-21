@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  orderPlacedText,
+  orderQuantityPrompt,
   productListText,
   ratingPromptReplies,
   searchResultsReply,
@@ -38,6 +40,7 @@ function hit(overrides: Partial<ProductSearchHit> = {}): ProductSearchHit {
       area: "Mbare",
       city: "Harare",
       status: "ACTIVE",
+      whatsapp_number: "+263771234567",
     },
     category: { id: "cat-produce", name: "Produce", slug: "produce" },
     ...overrides,
@@ -107,5 +110,12 @@ describe("WhatsApp product listings", () => {
     expect(replies[0]?.kind === "interactive" && replies[0].message.body).toContain(
       "How was Tariro Fresh Produce?",
     );
+  });
+
+  it("includes a tappable vendor chat link after a product is chosen", () => {
+    expect(orderQuantityPrompt("Tomatoes", "kg", 20, "+263771234567")).toContain(
+      "Chat: https://wa.me/263771234567",
+    );
+    expect(orderPlacedText("+263771234567")).toContain("Chat: https://wa.me/263771234567");
   });
 });

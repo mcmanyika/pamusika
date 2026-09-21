@@ -135,6 +135,7 @@ function parseOrder(value: unknown): OrderDraft | undefined {
     available: asNumber(record.available),
     unitPrice: asNumber(record.unitPrice),
     orderId: asString(record.orderId),
+    vendorWhatsapp: asString(record.vendorWhatsapp),
   };
 }
 

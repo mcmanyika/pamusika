@@ -18,7 +18,10 @@ import type { Product, Vendor } from "@/types/database";
 import type { ProductStatus } from "@/types/commerce";
 
 export type ProductSearchHit = Product & {
-  vendor: Pick<Vendor, "id" | "vendor_code" | "business_name" | "area" | "city" | "status">;
+  vendor: Pick<
+    Vendor,
+    "id" | "vendor_code" | "business_name" | "area" | "city" | "status" | "whatsapp_number"
+  >;
   category: { id: string; name: string; slug: string } | null;
 };
 
@@ -295,7 +298,7 @@ export function createProductService(
       const vendorIds = [...new Set(productRows.map((row) => row.vendor_id))];
       const { data: vendorRows, error: vendorError } = await client
         .from("vendors")
-        .select("id, vendor_code, business_name, area, city, status")
+        .select("id, vendor_code, business_name, area, city, status, whatsapp_number")
         .in("id", vendorIds)
         .eq("status", "ACTIVE");
       if (vendorError) throwStoreError(vendorError);

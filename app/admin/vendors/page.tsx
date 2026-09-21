@@ -75,6 +75,7 @@ export default async function AdminVendorsPage({
           whatsapp: vendor.whatsapp_number,
           address: vendorAddressLabel(vendor),
           categoryName: vendor.categoryName ?? "—",
+          categorySlug: vendor.categorySlug,
           productCount: vendor.productCount,
           orderCount: vendor.orderCount,
           status: vendor.status,

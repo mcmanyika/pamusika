@@ -1,3 +1,4 @@
+import { CategoryLabel } from "@/components/admin/category-icon";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { PageHeader } from "@/components/layout/page-header";
@@ -18,11 +19,12 @@ export default async function AdminHarvestPage() {
         description="Expected harvests that vendors submitted on WhatsApp. These are not listed for sale until the vendor publishes a product."
       />
       <DataTable
-        columns={["Vendor", "Crop", "Quantity", "Month", "Area", "Status"]}
+        columns={["Vendor", "Crop", "Category", "Quantity", "Month", "Area", "Status"]}
         empty="Harvest plans appear here after a vendor records expected produce."
         rows={plans.map((plan) => [
           plan.vendorName ?? "—",
           plan.crop_name,
+          <CategoryLabel key={`${plan.id}-category`} name={plan.categoryName} slug={plan.categorySlug} />,
           `${plan.quantity} ${plan.unit}`,
           formatHarvestMonthLabel(plan.harvest_year, plan.harvest_month),
           locationLabel(plan.area, plan.city),

@@ -1,4 +1,5 @@
 import { CategoryActions } from "@/components/admin/category-actions";
+import { CategoryLabel } from "@/components/admin/category-icon";
 import { DataTable } from "@/components/admin/data-table";
 import { StatusBadge } from "@/components/admin/status-badge";
 import { PageHeader } from "@/components/layout/page-header";
@@ -45,7 +46,7 @@ export default async function AdminCategoriesPage() {
         ]}
         empty="Add a category to use it in vendor registration, product listing, and buyer browse."
         rows={rows.map((category) => [
-          category.name,
+          <CategoryLabel key={`${category.id}-name`} name={category.name} slug={category.slug} variant="badge" />,
           category.slug,
           <StatusBadge key={`${category.id}-status`}>{category.status}</StatusBadge>,
           String(category.sort_order),

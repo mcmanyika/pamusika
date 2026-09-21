@@ -18,6 +18,7 @@ import type {
 
 export type VendorListRow = Vendor & {
   categoryName: string | null;
+  categorySlug: string | null;
   productCount: number;
   orderCount: number;
 };
@@ -25,7 +26,9 @@ export type VendorListRow = Vendor & {
 export type ProductListRow = Product & {
   vendorName: string | null;
   vendorArea: string | null;
+  vendorWhatsapp: string | null;
   categoryName: string | null;
+  categorySlug: string | null;
 };
 
 export type CategoryListRow = Category & {
@@ -153,9 +156,10 @@ export async function loadVendors(
     allOrders(client),
     allCategories(client),
   ]);
-  const categoryName = new Map(categories.map((category) => [category.id, category.name]));
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
   const productCount = countBy(products.filter((product) => product.status !== "REMOVED"), "vendor_id");
   const orderCount = countBy(orders, "vendor_id");
+  const primaryCategory = (id: string | null) => (id ? categoryById.get(id) : undefined);
 
   const rows = vendors
     .filter((vendor) => {
@@ -172,9 +176,8 @@ export async function loadVendors(
     })
     .map((vendor) => ({
       ...vendor,
-      categoryName: vendor.primary_category_id
-        ? categoryName.get(vendor.primary_category_id) ?? null
-        : null,
+      categoryName: primaryCategory(vendor.primary_category_id)?.name ?? null,
+      categorySlug: primaryCategory(vendor.primary_category_id)?.slug ?? null,
       productCount: productCount.get(vendor.id) ?? 0,
       orderCount: orderCount.get(vendor.id) ?? 0,
     }));
@@ -192,7 +195,7 @@ export async function loadProducts(
     allCategories(client),
   ]);
   const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
-  const categoryName = new Map(categories.map((category) => [category.id, category.name]));
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
 
   return products
     .filter((product) => {
@@ -210,7 +213,9 @@ export async function loadProducts(
         ...product,
         vendorName: vendor?.business_name ?? null,
         vendorArea: vendor?.area ?? null,
-        categoryName: product.category_id ? categoryName.get(product.category_id) ?? null : null,
+        vendorWhatsapp: vendor?.whatsapp_number ?? null,
+        categoryName: product.category_id ? categoryById.get(product.category_id)?.name ?? null : null,
+        categorySlug: product.category_id ? categoryById.get(product.category_id)?.slug ?? null : null,
       };
     });
 }
@@ -352,6 +357,7 @@ export async function loadReferrals(client: CommerceClient): Promise<ReferralLis
 export type HarvestListRow = HarvestPlan & {
   vendorName: string | null;
   categoryName: string | null;
+  categorySlug: string | null;
 };
 
 export async function loadHarvestPlans(client: CommerceClient): Promise<HarvestListRow[]> {
@@ -370,6 +376,7 @@ export async function loadHarvestPlans(client: CommerceClient): Promise<HarvestL
     ...plan,
     vendorName: vendorById.get(plan.vendor_id)?.business_name ?? vendorById.get(plan.vendor_id)?.vendor_code ?? null,
     categoryName: plan.category_id ? categoryById.get(plan.category_id)?.name ?? null : null,
+    categorySlug: plan.category_id ? categoryById.get(plan.category_id)?.slug ?? null : null,
   }));
 }
 
@@ -440,6 +447,9 @@ export async function loadVendorDetail(client: CommerceClient, vendorId: string)
     vendor,
     categoryName: vendor.primary_category_id
       ? categories.find((category) => category.id === vendor.primary_category_id)?.name ?? null
+      : null,
+    categorySlug: vendor.primary_category_id
+      ? categories.find((category) => category.id === vendor.primary_category_id)?.slug ?? null
       : null,
     products: products.filter((product) => product.vendor_id === vendorId),
     orders: orders.filter((order) => order.vendor_id === vendorId),

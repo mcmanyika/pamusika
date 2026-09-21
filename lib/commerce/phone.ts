@@ -33,3 +33,7 @@ export function normalizePhoneNumber(input: string): string {
 export function toWhatsAppId(phone: string): string {
   return phone.replace(/\D/g, "");
 }
+
+export function whatsappChatHref(phone: string): string {
+  return `https://wa.me/${toWhatsAppId(phone)}`;
+}

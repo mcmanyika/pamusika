@@ -6,6 +6,7 @@ import {
   customerOrdersText,
   helpReplies,
   orderQuantityPrompt,
+  orderPlacedText,
   orderSummaryText,
   searchResultsReply,
   vendorNewOrderText,
@@ -60,7 +61,7 @@ export const handleBuyer: ConversationHandler = async (turn, deps) => {
     return {
       state: "CUSTOMER_MENU",
       context: turn.context,
-      replies: [textReply(COPY.orderPlaced), ...customerMenuReplies()],
+      replies: [textReply(orderPlacedText(turn.context.order?.vendorWhatsapp)), ...customerMenuReplies()],
     };
   }
 
@@ -250,6 +251,7 @@ async function handleSearchResults(
     };
   }
 
+  const vendor = await deps.vendors.getById(product.vendor_id);
   const numbers = parseProductNumbers(product);
   return {
     state: "ORDER_QUANTITY",
@@ -259,8 +261,9 @@ async function handleSearchResults(
       unit: product.unit,
       available: numbers.quantity,
       unitPrice: numbers.price,
+      vendorWhatsapp: vendor?.whatsapp_number,
     }),
-    replies: [textReply(orderQuantityPrompt(product.name, product.unit, numbers.quantity))],
+    replies: [textReply(orderQuantityPrompt(product.name, product.unit, numbers.quantity, vendor?.whatsapp_number))],
   };
 }
 
@@ -333,10 +336,12 @@ async function handleOrderConfirm(
 
   const identity = { userType: "CUSTOMER" as const, userId: customer.id };
   const notifications: EngineNotification[] = [];
+  let vendorWhatsapp = draft.vendorWhatsapp;
 
   if (created) {
     await qualifyReferral(deps, turn.message.phoneNumber, "CUSTOMER", customer.id);
     const vendor = await deps.vendors.getById(order.vendor_id);
+    vendorWhatsapp = vendor?.whatsapp_number ?? vendorWhatsapp;
     if (vendor) {
       notifications.push({
         waId: toWhatsAppId(vendor.whatsapp_number),
@@ -350,11 +355,11 @@ async function handleOrderConfirm(
 
   return {
     state: "ORDER_WAITING_VENDOR",
-    context: withOrder(turn.context, { orderId: order.id }),
+    context: withOrder(turn.context, { orderId: order.id, vendorWhatsapp }),
     identity,
     notifications,
     replies: [
-      textReply(created ? COPY.orderPlaced : COPY.orderAlreadyPlaced),
+      textReply(created ? orderPlacedText(vendorWhatsapp) : COPY.orderAlreadyPlaced),
     ],
   };
 }
